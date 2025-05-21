@@ -1,0 +1,10 @@
+{
+    "require": {
+        "phpunit/phpunit": "^10.5"
+    },
+    "autoload": {
+        "psr-4": {
+            "BayCMS\\": "BayCMS"
+        }
+    }
+}
