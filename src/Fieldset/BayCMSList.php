@@ -512,37 +512,32 @@ class BayCMSList extends Fieldset
      */
     public function pageExport($ending, $basename)
     {
-        require_once("PHPExcel.php");
         // Create new PHPExcel object
         switch ($ending) {
             case 'xlsx':
-                $type = 'Excel2007';
+                $type = 'Xlsx';
                 $mime = 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet';
                 break;
-            case 'xls':
-                $type = 'Excel5';
-                $mime = 'vapplication/nd.ms-excel';
-                break;
             case 'pdf':
-                $type = 'PDF';
+                $type = 'Pdf';
                 $mime = 'application/pdf';
                 break;
             case 'csv':
-                $type = 'CSV';
+                $type = 'Csv';
                 $mime = 'text/x-csv';
                 break;
             default:
-                throw new \BayCMS\Exception\unsupportedFiletype("Unsupported export format $type");
+                throw new \BayCMS\Exception\unsupportedFiletype("Unsupported export format $ending");
         }
 
         [$query, $fields]=$this->createQuery('xlsx');
 
-        $objPHPExcel = new \PHPExcel();
+        $objPHPExcel = new \PhpOffice\PhpSpreadsheet\Spreadsheet();
         $objPHPExcel->getProperties()->setCreator("BayCMS")
             ->setLastModifiedBy("BayCMS");
         $objPHPExcel->getActiveSheet()->fromArray($fields, NULL, 'A1');
-        $first_letter = \PHPExcel_Cell::stringFromColumnIndex(0);
-        $last_letter = \PHPExcel_Cell::stringFromColumnIndex(count($fields) - 1);
+        $first_letter = \PhpOffice\PhpSpreadsheet\Cell\Coordinate::stringFromColumnIndex(0);
+        $last_letter = \PhpOffice\PhpSpreadsheet\Cell\Coordinate::stringFromColumnIndex(count($fields) - 1);
         $header_range = "{$first_letter}1:{$last_letter}1";
         $objPHPExcel->getActiveSheet()->getStyle($header_range)->getFont()->setBold(true);
         date_default_timezone_set('GMT');
@@ -558,13 +553,13 @@ class BayCMSList extends Fieldset
                 else
                     $value = $r[$j];
 
-                $cell = \PHPExcel_Cell::stringFromColumnIndex($j) . ($i + 2);
+                $cell = \PhpOffice\PhpSpreadsheet\Cell\Coordinate::stringFromColumnIndex($j+1) . ($i + 2);
                 if ($value) {
                     if ($ct == 'bool') {
                         $value = ($r[$j] == 't' ? 1 : 0);
                     } elseif (strstr($ct, 'timestamp')) {
                         $t = date_parse_from_format('Y-m-d H:i:s', $r[$j]);
-                        $value = \PHPExcel_Shared_Date::PHPToExcel(
+                        $value = \PhpOffice\PhpSpreadsheet\Shared\Date::PHPToExcel(
                             mktime(
                                 $t['hour'],
                                 $t['minute'],
@@ -587,7 +582,7 @@ class BayCMSList extends Fieldset
 
                     } elseif ($ct == 'date') {
                         $t = date_parse_from_format('Y-m-d', $r[$j]);
-                        $value = \PHPExcel_Shared_Date::PHPToExcel(
+                        $value = \PhpOffice\PhpSpreadsheet\Shared\Date::PHPToExcel(
                             mktime(0, 0, 0, $t['month'], $t['day'], $t['year'])
                         );
                         $objPHPExcel->getActiveSheet()->getStyle($cell)
@@ -615,7 +610,7 @@ class BayCMSList extends Fieldset
         header('Content-Disposition: attachment;filename="' . $basename . '.' . $ending . '"');
         header('Cache-Control: max-age=0');
 
-        $objWriter = \PHPExcel_IOFactory::createWriter($objPHPExcel, $type);
+        $objWriter = \PhpOffice\PhpSpreadsheet\IOFactory::createWriter($objPHPExcel, $type);
         $objWriter->save('php://output');
         exit;
 

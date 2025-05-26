@@ -469,8 +469,7 @@ class Domain extends Fieldset
                 $content = $_POST['uploaded_txt'];
                 $delim = "\t";
             } elseif (strstr(strtolower($_FILES['uploaded']['name']), '.xls')) {
-                require_once("PHPExcel.php");
-                $objPHPExcel = \PHPExcel_IOFactory::load($_FILES['uploaded']['tmp_name']);
+                $objPHPExcel = \PhpOffice\PhpSpreadsheet\IOFactory::load($_FILES['uploaded']['tmp_name']);
                 $objWorksheet = $objPHPExcel->getActiveSheet();
                 $fields = [];
                 $r = 0;
@@ -482,8 +481,8 @@ class Domain extends Fieldset
                     $col = [];
                     foreach ($cellIterator as $cell) {
                         $v = $cell->getValue();
-                        if (\PHPExcel_Shared_Date::isDateTime($cell)) {
-                            $v = date("Y-m-d H:i:s", \PHPExcel_Shared_Date::ExcelToPHP($v));
+                        if (\PhpOffice\PhpSpreadsheet\Shared\Date::isDateTime($cell)) {
+                            $v = date("Y-m-d H:i:s", \PhpOffice\PhpSpreadsheet\Shared\Date::excelToTimestamp($v));
                         }
                         $col[] = $v;
                         if (!$has_data)

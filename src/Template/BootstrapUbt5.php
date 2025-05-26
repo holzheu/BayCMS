@@ -21,7 +21,7 @@ class BootstrapUbt5 extends Bootstrap {
         $this->no_brand=false;
         $this->css='bootstrap.ubt5';
         $this->pre_nav_html='
-        
+
             <div >
             <div class="pull-left" style="max-width: 30%">
             <a href="http://www.uni-bayreuth.de"><img  class="img-responsive" 
@@ -34,11 +34,11 @@ class BootstrapUbt5 extends Bootstrap {
             </div>
             <p  style="font-size:1.3em; font-weight:bold; padding-top:15px;">' . $this->context->getRow1String('head_') . '</p>
             <p  style="font-size:1.1em; font-weight:bold;">' . $this->context->getRow1String('subhead_') . '</p>
-                
+
             </div>
             <div class="clearfix"></div>';
-        
-        
+
+
         //$row1['fgcolor'] = '#5bc0de';
         //$row1['f2color'] = '#ffffff';
         
