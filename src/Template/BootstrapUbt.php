@@ -90,6 +90,7 @@ class BootstrapUbt extends Bootstrap {
         </div>';
         
         $this->css='bootstrap.ubt';
+        $this->tiny_css = '/baycms-template/' . $this->css . '/css/bootstrap.min.css';
         $this->pre_nav_html=$BOOTSTRAP_PRE_NAV_HTML;
         $this->home_nav=$BOOTSTRAP_HOME_NAV;
         $this->navbar_inverted=false;

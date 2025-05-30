@@ -12,6 +12,8 @@ class BootstrapAquaklif extends Bootstrap {
             $logo_link = '/' . $this->context->org_folder . '/?lang=' . $this->context->lang;
         
         $this->css='bootstrap.aquaklif';
+        $this->tiny_css = '/baycms-template/' . $this->css . '/css/bootstrap.min.css';
+
         $this->home_nav=true;
         $this->pre_nav_html='
         <div class="container">

@@ -1,3 +1,3 @@
 <?php
 
-define('BayCMSVersion','4.0.6');
+define('BayCMSVersion','4.0.9');

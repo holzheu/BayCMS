@@ -25,6 +25,7 @@ class BootstrapFfr extends Bootstrap
         $this->css = 'bootstrap.ffr';
         $this->home_nav = true;
         $this->footer_text = 'Gefördert durch: Bundesministerium für Umwelt, Naturschutz, nukleare Sicherheit und Verbraucherschutz';
+        $this->tiny_css = '/baycms-template/' . $this->css . '/css/bootstrap.min.css';
 
 
     }

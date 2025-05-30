@@ -38,6 +38,7 @@ class BootstrapGrafox extends Bootstrap {
         
         $row1['fgcolor'] = '#5bc0de';
         $row1['f2color'] = '#ffffff';
-        
+        $this->tiny_css = '/baycms-template/' . $this->css . '/css/bootstrap.min.css';
+
     }
 }

@@ -22,6 +22,8 @@ background-size:100% 100%;"></div>
 
         $this->no_brand = true;
         $this->css = 'bootstrap.buendnis';
+        $this->tiny_css = '/baycms-template/' . $this->css . '/css/bootstrap.min.css';
+
         $this->home_nav = true;
         $this->footer_attr = ' style="width:100%; background: url(\'/baycms-template/bootstrap.buendnis/bstripes.png\'); background-size:100% 100%;"';
 

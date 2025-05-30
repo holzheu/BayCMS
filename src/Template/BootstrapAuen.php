@@ -9,6 +9,8 @@ class BootstrapAuen extends Bootstrap {
         parent::__construct($context);
         $this->no_brand=false;
         $this->css='bootstrap.bayceer';
+        $this->tiny_css = '/baycms-template/' . $this->css . '/css/bootstrap.min.css';
+
         $this->home_nav=true;
         $this->header_style='<style>' . ($context->no_frame ? '' : '
 #wrap {

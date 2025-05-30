@@ -35,7 +35,7 @@ class Bootstrap extends \BayCMS\Base\BasicTemplate{
             $this->context = $context;
         $this->toplink = $this->context->t('About us', 'Über uns');
 
-        $this->no_bilang = $this->context->get('row1', 'te_nobilang');
+        $this->no_bilang = $this->context->get('row1', 'te_nobilang', false);
 
         $this->footer_text = 'powered by BayCMS © 2024 <a href="http://www.uni-bayreuth.de/">University of Bayreuth,</a>
             <a href="http://www.bayceer.uni-bayreuth.de/">BayCEER</a>';

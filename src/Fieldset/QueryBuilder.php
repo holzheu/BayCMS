@@ -100,6 +100,7 @@ class QueryBuilder extends TabFieldset
         $this->list_where = $where ?? ($object ? "t.id=o.id" : 'true');
         $this->row_click_query = $row_click_query;
         $this->id_query = $id_query;
+        $this->values=[];
     }
 
 
@@ -180,6 +181,7 @@ class QueryBuilder extends TabFieldset
         if (($_GET['id_qb1'] ?? false) && $this->mapper_class) {
             $m = new $this->mapper_class($this->context);
             $map = $m->map($_GET['id_qb1']);
+            $this->values=$map['json'];
             $this->setValues($map['json']);
             $error_message .= $map['error'];
         }

@@ -2,7 +2,6 @@
 
 namespace BayCMS\Util;
 
-require_once '/usr/share/baycms/tbszip/tbszip.php';
 class XMLDocWriter
 {
 

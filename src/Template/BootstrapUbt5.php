@@ -20,6 +20,8 @@ class BootstrapUbt5 extends Bootstrap {
         $this->warp_container=true;
         $this->no_brand=false;
         $this->css='bootstrap.ubt5';
+        $this->tiny_css = '/baycms-template/' . $this->css . '/css/bootstrap.min.css';
+
         $this->pre_nav_html='
 
             <div >

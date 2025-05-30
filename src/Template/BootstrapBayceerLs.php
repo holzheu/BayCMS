@@ -4,36 +4,38 @@ namespace BayCMS\Template;
 
 use BayCMS\Template\Bootstrap;
 
-class BootstrapBayceerLs extends Bootstrap {
-    public function __construct(\BayCMS\Base\BayCMSContext|null $context = null){
-        parent::__construct($context);
-        $BILD_HTML = '';
-$res = pg_query(
-	$this->context->getDbConn(),
-	"select non_empty(" . $this->context->getLangLang2('b.') . ") as titel,
+class BootstrapBayceerLs extends Bootstrap
+{
+	public function __construct(\BayCMS\Base\BayCMSContext|null $context = null)
+	{
+		parent::__construct($context);
+		$BILD_HTML = '';
+		$res = pg_query(
+			$this->context->getDbConn(),
+			"select non_empty(" . $this->context->getLangLang2('b.') . ") as titel,
 		non_empty(" . $this->context->getLangLang2('i.url_') . ") as url,
 		b.x,b.y,i.margin,b.name from 
 		bild b, ubt3_images i where b.id=i.id_bild and i.id_lehr=" .
-	$this->context->get('row1', 'id') . " order by i.ordnung,1"
-);
-$width = 420;
-$x = 0;
-$i = 0;
-$num = pg_num_rows($res);
-while ($x < $width && $i < $num) {
-	$r = pg_fetch_array($res, $i);
-	$i++;
-	$x += $r['x'];
-	if ($x <= $width) {
-		$BILD_HTML .= ($r['url'] ? "<a href=\"$r[url]\">" : "") . "<img src=\"/" . $this->context->getOrgLinkLang() . "/image/$r[name]\" 
+			$this->context->get('row1', 'id') . " order by i.ordnung,1"
+		);
+		$width = 420;
+		$x = 0;
+		$i = 0;
+		$num = pg_num_rows($res);
+		while ($x < $width && $i < $num) {
+			$r = pg_fetch_array($res, $i);
+			$i++;
+			$x += $r['x'];
+			if ($x <= $width) {
+				$BILD_HTML .= ($r['url'] ? "<a href=\"$r[url]\">" : "") . "<img src=\"/" . $this->context->getOrgLinkLang() . "/image/$r[name]\" 
 		width=\"$r[x]\" height=\"$r[y]\" border=\"0\" style=\"margin-right: $r[margin]px;\" alt=\"$r[titel]\" 
 		title=\"$r[titel]\">" . ($r['url'] ? "</a>" : "");
-		$x += $r['margin'];
-	}
-}
+				$x += $r['margin'];
+			}
+		}
 
-$this->info0 = '<div class="visible-md" style="height:20px; width: 200px;"></div>';
-$this->header_style = '<style>' . ($this->context->get('no_frame') ? '' : '
+		$this->info0 = '<div class="visible-md" style="height:20px; width: 200px;"></div>';
+		$this->header_style = '<style>' . ($this->context->get('no_frame') ? '' : '
 	@media (min-width: 768px){ 
 	#wrap {
 		 background: #fff url(/baycms-template/bootstrap.bayceer/bg_sm40.png) center 0 repeat-x;
@@ -60,9 +62,9 @@ $this->header_style = '<style>' . ($this->context->get('no_frame') ? '' : '
 	
 	</style>';
 
-$this->info3 = '';
-$this->info4 = 'default';
-$this->pre_nav_html = '<div class="visible-xs visible-sm center-block" 
+		$this->info3 = '';
+		$this->info4 = 'default';
+		$this->pre_nav_html = '<div class="visible-xs visible-sm center-block" 
 	style="width:100%; background: url(/baycms-template/bootstrap.bayceer/bg_top.gif) 0 0 repeat-x;">
 	<div class="container">
 	<div class="pull-right" style="line-height:10px;"><a href="http://www.uni-bayreuth.de">
@@ -83,7 +85,7 @@ $this->pre_nav_html = '<div class="visible-xs visible-sm center-block"
 	<div class="pull-right hidden-sm hidden-xs" style="padding-top:19px;">' . $BILD_HTML . '</div>
 	<div class="pull-left">
 	<a href="/bayceer/?lang=' . $this->context->lang .
-	'"><img src="/baycms-template/bootstrap.bayceer/bayceer_' . $this->context->lang . '2.gif"></a>
+			'"><img src="/baycms-template/bootstrap.bayceer/bayceer_' . $this->context->lang . '2.gif"></a>
 	</div>
     <h1 class="hidden-xs" style="font-size:1.5em; font-weight: bold; color:#03922c;">' . $this->context->getRow1String('head_') . '</h1>
     <h3 class="hidden-xs" style="font-size:1.2em; font-weight: bold; color:#000;">' . $this->context->getRow1String('subhead_') . '</h3>
@@ -92,8 +94,10 @@ $this->pre_nav_html = '<div class="visible-xs visible-sm center-block"
 	</div>
 	<div class="clearfix"></div>
 	';
-$this->css = 'bootstrap.bayceer';
-$this->no_brand = false;
+		$this->css = 'bootstrap.bayceer';
+		$this->tiny_css = '/baycms-template/' . $this->css . '/css/bootstrap.min.css';
 
-    }
+		$this->no_brand = false;
+
+	}
 }

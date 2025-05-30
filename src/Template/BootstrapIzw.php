@@ -15,6 +15,7 @@ class BootstrapIzw extends Bootstrap {
         </div>';
         $this->home_nav=true;
         
-        
+        $this->tiny_css = '/baycms-template/' . $this->css . '/css/bootstrap.min.css';
+
     }
 }

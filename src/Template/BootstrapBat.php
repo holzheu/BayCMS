@@ -8,6 +8,8 @@ class BootstrapBat extends Bootstrap {
     public function __construct(\BayCMS\Base\BayCMSContext|null $context = null){
         parent::__construct($context);
         $this->css='bootstrap.bat';
+        $this->tiny_css = '/baycms-template/' . $this->css . '/css/bootstrap.min.css';
+
         $this->home_nav=true;
         $this->pre_nav_html= '<div class="container">
         <div class="pull-left" style="max-width: 100%; ">
