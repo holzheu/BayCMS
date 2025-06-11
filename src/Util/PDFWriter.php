@@ -53,7 +53,7 @@ class PDFWriter extends XMLDocWriter
         return $data;
     }
 
-    private function writePDFPage($values, $file)
+    public function writePDFPage($values, $file)
     {
         if (!is_readable($file)) {
             throw new \BayCMS\Exception\notFound("File $file not found");
@@ -70,7 +70,7 @@ class PDFWriter extends XMLDocWriter
         return $pdf_fn;
     }
 
-    function joinPDFPages($pdfs)
+    public function joinPDFPages($pdfs)
     {
         $pdf = tempnam($this->tmpdir, 'pdf_full');
         $files = implode(" ", $pdfs);
@@ -78,7 +78,7 @@ class PDFWriter extends XMLDocWriter
         return $pdf;
     }
 
-    function write($json = 0)
+    public function write($json = 0)
     {
         $matches = [];
         preg_match('|/([^/]+)$|i', $this->templates[0], $matches);

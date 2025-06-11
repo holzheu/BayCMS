@@ -29,14 +29,14 @@ class HTMLPage extends Page
         );
         if (!pg_num_rows($res))
             $this->error(
-                '404 Not found',
+                404,
                 'There is no HTML-Page with id=' . $this->id
             );
 
         $r = pg_fetch_array($res, 0);
         if ($r['min_power'] > $this->context->get('row1', 'power', 0))
             $this->error(
-                '401 Unautherized',
+                401,
                 'You do not have sufficient rights to access HTML-Page with id=' . $this->id
             );
 

@@ -192,11 +192,9 @@ class BayCMSAuthenticator
     public function authenticateByIP()
     {
         $row1 = $this->context->row1;
-        if (($row1['id_auth'] ?? 'f') != 't')
+        if (($row1['ip_auth'] ?? 'f') != 't')
             return;
         if ($_SESSION['no_ipauth'] ?? false)
-            return;
-        if ($this->context->getMinPower() == 0)
             return;
         if (isset($_SERVER['PHP_AUTH_USER']) || isset($_POST['PHP_AUTH_USER']) || isset($_POST['php_auth_user']))
             return;
@@ -311,7 +309,6 @@ class BayCMSAuthenticator
             }
 
         }
-
         //Login/PW-Kombination nicht korrekt
         if (!$ok) {
             $auth_fallback_ok = 0;
@@ -454,8 +451,7 @@ class BayCMSAuthenticator
             $this->authenticateByUserPW($_POST['PHP_AUTH_USER'], $_POST['PHP_AUTH_PW']);
         if (isset($_POST['php_auth_user']))
             $this->authenticateByUserPW($_POST['php_auth_user'], $_POST['php_auth_pw']);
-
-        if ($this->context->getMinPower() > 0 && !$this->AUTH_OK)
+        if ($this->context->getMinPower() > $this->context->getPower())
             $this->authPage($_POST['php_auth_user'] ?? '');
 
     }

@@ -55,7 +55,7 @@ image_class_list: [
 {title: 'Jumbotron', inline: 'div', classes: 'jumbotron', wrapper: true},
 {title: 'Button Link', selector: 'a', classes: 'btn btn-default'},
 ]";
-        $this->tiny_templates = "'/baycms-template/bootstrap/templates.php'";
+        $this->tiny_template = "'/baycms-template/bootstrap/templates.php'";
     }
 
     public function __set(string $name, mixed $value){
@@ -115,15 +115,14 @@ image_class_list: [
         return $out;
     }
 
-    public function getMessage($msg, $class = 'success', $notice = '')
+    public function getMessage(string $msg, string $class = 'success', string $notice = '', bool $inline = false)
     {
-        return '<div class="alert alert-' . $class . ' alert-dismissible" role="alert">
+        if(! $this->context->commandline && ! $inline)
+            return '<div class="alert alert-' . $class . ' alert-dismissible" role="alert">
 		<button type="button" class="close" data-dismiss="alert" aria-label="Close">
 		<span aria-hidden="true">&times;</span></button><strong>' . $msg . '</strong>' . ($notice ? '<br/>' . $notice : '') . '</div>';
-    }
-    public function printMessage($msg, $class = 'success', $notice = '')
-    {
-        echo $this->getMessage($msg, $class, $notice);
+
+        return parent::getMessage($msg, $class, $notice, $inline);
     }
 
     public function getCSSClass($which)
@@ -486,7 +485,7 @@ image_class_list: [
                     echo 'out';
                 else
                     echo 'in';
-                echo '"></span>' . ucfirst(strtolower($this->context->get('H_LoginLogout', 'text'))) . '</a></li>';
+                echo '"></span> ' . ucfirst(strtolower($this->context->get('H_LoginLogout', 'text'))) . '</a></li>';
 
             }
             if (!$this->no_bilang) {

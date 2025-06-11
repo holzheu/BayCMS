@@ -24,7 +24,7 @@ class TinyMCE extends \BayCMS\Base\BayCMSBase {
 	  content_css: "'.$this->context->TE->tiny_css.'",
 	  style_formats_merge: true,
       style_formats: '.$this->context->TE->tiny_style_formats.', 
-	  templates: '.$this->context->TE->tiny_templates.',
+	  '.($this->context->TE->tiny_template?'templates: '.$this->context->TE->tiny_template.',':'').'
 	  '.($this->context->TE->tiny_image_class? $this->context->TE->tiny_image_class.',':'').'
 	  file_picker_types: "'.($this->context->getPower()>=1000?'file ':'').'image",
 	  file_picker_callback: function(callback, value, meta) {

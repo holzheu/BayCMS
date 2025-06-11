@@ -37,7 +37,7 @@ class Domain extends Fieldset
     protected string $where;
     // properties for list
     // not set by constructor
-    protected string $squery = '';
+    protected ?string $squery = null;
     protected string $prefex = 't.';
     protected array $order_by = [1];
     protected ?array $json_order_by = null;
@@ -265,7 +265,9 @@ class Domain extends Fieldset
         foreach ($this->fields as $f) {
             if (!$f->get('search_field'))
                 continue;
-            $this->sform->addField($f);
+            $f2=clone($f);
+            $f2->non_empty=false;
+            $this->sform->addField($f2);
             $count++;
         }
         if ($this->qs ?? false) {
@@ -397,7 +399,7 @@ class Domain extends Fieldset
      * Creates the HTML+JS-Head for the Domain
      * @return string
      */
-    protected function getHead()
+    public function getHead()
     {
         $head = ($_GET['js_select'] ?? false ?
             ($this->de() ?
@@ -850,6 +852,12 @@ class Domain extends Fieldset
      */
     public function getJSON()
     {
+        if (!isset($this->squery)) {
+            $this->createSearchForm();
+            $this->squery = " and " . $this->sform->getField(0)->getSQL("t.") . " ilike '%" .
+                pg_escape_string($this->context->getDbConn(), $_GET['json_query']) .
+                "%'";
+        }
         $this->createList('json');
         return $this->list->getJSON();
     }

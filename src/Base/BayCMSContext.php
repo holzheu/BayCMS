@@ -13,51 +13,52 @@ class BayCMSContext
     private string $HTTP_PATH;
     private string $SID;
     private \BayCMS\Base\BasicTemplate $TE;
-    private string $lang='de';
-    private string $lang2='en';
+    private string $lang = 'de';
+    private string $lang2 = 'en';
     private string $org_folder;
-    private string $kategorie='top';
-    private string $modul='';
-    private string $php_file='';
-    private string $file='';
-    private string $title='';
-    private int $title_status=0;
+    private string $kategorie = 'top';
+    private string $modul = '';
+    private string $php_file = '';
+    private string $file = '';
+    private string $title = '';
+    private int $title_status = 0;
     private string $ADDITIONAL_HTML_HEAD = '';
-    private string $additional_body_attributes='';
-    private string $last_modified='';
-    private string $object_title='';
-    private int $object_id=0;
-    private string $H_kat_query='';
-    private string $H_kat_query_extern='';
-    private string $H_kat_query_intern='';
+    private string $additional_body_attributes = '';
+    private string $last_modified = '';
+    private string $object_title = '';
+    private int $object_id = 0;
+    private string $H_kat_query = '';
+    private string $H_kat_query_extern = '';
+    private string $H_kat_query_intern = '';
 
 
     private array $row1;
 
-    private array $H_LoginLogout=[];
-    private bool $no_frame=false;
-    private bool $frameable=false;
-    private bool $AUTH_OK=false;
-    private bool $IP_AUTH_OK=false;
-    private int $min_power=0;
-    private int $kat_min_power=0;
-    private int $kat_id=1000;
-    private string $header_kat='';
-    private string $page_prefix='';
-    private string $page_postfix='';
+    private array $H_LoginLogout = [];
+    private bool $no_frame = false;
+    private bool $frameable = false;
+    private bool $AUTH_OK = false;
+    private bool $IP_AUTH_OK = false;
+    private int $min_power = 0;
+    private int $kat_min_power = 0;
+    private int $kat_id = 1000;
+    private string $header_kat = '';
+    private string $page_prefix = '';
+    private string $page_postfix = '';
     private array $tr = [];
 
-    private bool $header_printed=false;
+    private bool $header_printed = false;
+    public bool $commandline = false;
 
-    public function __construct(string $BayCMSRoot, array $row1=[])
+    public function __construct(string $BayCMSRoot, array $row1 = [])
     {
         require $BayCMSRoot . "/inc/localconfig.inc";
-        $this->BayCMSRoot= $DOC_PFAD;
+        $this->BayCMSRoot = $DOC_PFAD;
         $this->DB_EXTERN = $DB_EXTERN;
         $this->DB_OWNER = $DB_OWNER;
         $this->DB_NAME = $DB_NAME;
         $this->HTTP_PATH = $HTTP_PFAD;
-        $this->row1=$row1;
+        $this->row1 = $row1;
 
         $this->conn_ro = pg_connect($DB_EXTERN);
         pg_set_client_encoding($this->conn_ro, 'UTF-8');
@@ -100,11 +101,11 @@ class BayCMSContext
                 throw new \Exception('Unknown organisation');
             }
             $this->row1['power'] = 0;
-            $res=pg_query($this->conn_ro,"select * from bild where id_obj=".$this->row1['id']." and
+            $res = pg_query($this->conn_ro, "select * from bild where id_obj=" . $this->row1['id'] . " and
             (de='org_logo' or de='org_favicon') ");
-            for($i=0;$i<pg_num_rows($res);$i++){
-                $r=pg_fetch_array($res,$i);
-                $this->row1[$r['de']]=$r['name'];
+            for ($i = 0; $i < pg_num_rows($res); $i++) {
+                $r = pg_fetch_array($res, $i);
+                $this->row1[$r['de']] = $r['name'];
             }
 
             // Parsen des Pfads: /$ls_link/$lang/$kategorie/$file
@@ -113,20 +114,21 @@ class BayCMSContext
                 '\1',
                 $_SERVER['PHP_SELF']
             );
-            if (preg_match('&[^/]+/[^/]+/[^/]+&',$subpath)) {
+            if (preg_match('&[^/]+/[^/]+/[^/]+&', $subpath)) {
                 [$this->lang, $this->kategorie, $this->file] = explode(
                     "/",
                     $subpath,
                     3
                 );
-                if(strstr($this->file,'/'))
+                if (strstr($this->file, '/'))
                     [$this->modul, $this->php_file] = explode("/", $this->file, 2);
             }
             $this->setLang();
         }
     }
 
-    public function __get(string $name){
+    public function __get(string $name)
+    {
         return $this->$name;
     }
 
@@ -189,10 +191,10 @@ class BayCMSContext
             $this->header_kat = ": " . $this->header_kat;
         else
             $this->header_kat = '';
-            if($this->title_status==1){
-                $this->title .= $this->header_kat;
-                $this->title_status=2;
-            }
+        if ($this->title_status == 1) {
+            $this->title .= $this->header_kat;
+            $this->title_status = 2;
+        }
     }
 
     public function getPrePostHtml()
@@ -229,7 +231,7 @@ class BayCMSContext
             $this->lang = 'de';
         $this->lang2 = $this->lang == 'de' ? 'en' : 'de';
         $this->title = $this->getRow1String('title_');
-        $this->title_status=1;
+        $this->title_status = 1;
 
     }
 
@@ -265,7 +267,21 @@ class BayCMSContext
         return $this->conn_rw;
     }
 
-
+    public function prepare(string $stmtname, string $query, bool $rw = true)
+    {
+        $res = pg_query_params(
+            $rw ? $this->getRwDbConn() : $this->getDbConn(),
+            'select name from pg_prepared_statements where name=$1',
+            [$stmtname]
+        );
+        if (pg_num_rows($res))
+            return true;
+        return pg_prepare(
+            $rw ? $this->getRwDbConn() : $this->getDbConn(),
+            $stmtname,
+            $query
+        );
+    }
 
     public function registerGlobal()
     {
@@ -374,13 +390,12 @@ class BayCMSContext
 
     public function setSystemUser($set = true)
     {
-        if ($set){
-            $this->row1['id_user_orig']=$this->row1['id_benutzer']??null;
+        if ($set) {
+            $this->row1['id_user_orig'] = $this->row1['id_benutzer'] ?? null;
             $this->row1['id_benutzer'] = 5002;
 
-        }
-        else if ($this->row1['id_benutzer'] == 5002){
-            $this->row1['id_benutzer']=$this->row1['id_user_orig']??null;
+        } else if ($this->row1['id_benutzer'] == 5002) {
+            $this->row1['id_benutzer'] = $this->row1['id_user_orig'] ?? null;
         }
 
     }
@@ -440,7 +455,7 @@ class BayCMSContext
 
         $obj->checkReadAccess(); //Will redirect, if object does not belong to unit.
 
-        
+
         $this->ADDITIONAL_HTML_HEAD .= $obj->getHTMLHeader();
         $values = $obj->get();
         $title = $values[$this->lang ?? 'en'];
@@ -450,9 +465,9 @@ class BayCMSContext
         $dt = new \DateTime();
         $dt->setTimestamp($values['utime']);
         $this->last_modified = $dt->format("d.m.Y H:i");
-        if($this->title_status==2){
+        if ($this->title_status == 2) {
             $this->title .= ": " . $title;
-            $this->title_status=3;
+            $this->title_status = 3;
         }
         $this->object_title = $title;
         $this->object_id = $id;
@@ -504,7 +519,7 @@ class BayCMSContext
         $this->checkHost();
         $auth = new \BayCMS\Base\BayCMSAuthenticator($this);
         $auth->authenticate();
-        $this->no_frame = $_GET['no_frame']??0;
+        $this->no_frame = $_GET['no_frame'] ?? 0;
         if (isset($_GET['js_select']) && in_array($_GET['js_select'], array('n', '1', 'tiny'))) {
             $this->no_frame = 1;
             $this->frameable = 1;
@@ -514,21 +529,22 @@ class BayCMSContext
 
     public function initTemplate()
     {
-        $class='\\BayCMS\\Template\\';
-        foreach(explode('.',$this->row1['style']) as $t){
-            $class.=ucfirst($t);
+        $class = '\\BayCMS\\Template\\';
+        foreach (explode('.', $this->row1['style']??'') as $t) {
+            $class .= ucfirst($t);
         }
-        if(class_exists($class)){
-            $this->TE= new $class($this);
+        if (class_exists($class)) {
+            $this->TE = new $class($this);
         } else {
-            $this->TE=new \BayCMS\Template\Bootstrap($this);
+            $this->TE = new \BayCMS\Template\Bootstrap($this);
         }
-        $GLOBALS['TE']=$this->TE;//for backward compatibility 
+        $GLOBALS['TE'] = $this->TE;//for backward compatibility 
     }
 
     public function printHeader()
     {
-        if($this->header_printed) return;
+        if ($this->header_printed)
+            return;
         $this->getIndexQueries();
         $this->getLoginLogoutLinks();
         $this->getPrePostHtml();
@@ -539,7 +555,7 @@ class BayCMSContext
         $GLOBALS['TE']->printHeader();
         if (!$this->no_frame)
             echo $GLOBALS['TE']->htmlPostprocess($this->get('page_prefix', null, ''));
-        $this->header_printed=true;
+        $this->header_printed = true;
 
     }
 
@@ -559,7 +575,8 @@ class BayCMSContext
         $res = $this->get('row1', $prefix . $this->lang);
         if (!$res)
             $res = $this->get('row1', $prefix . $this->lang2);
-        if(! $res) return '';
+        if (!$res)
+            return '';
         return $res;
     }
 
@@ -575,14 +592,14 @@ class BayCMSContext
 
     public function getOrgLogo()
     {
-        if (! $this->get('row1', 'org_logo'))
+        if (!$this->get('row1', 'org_logo'))
             return '';
         return '/' . $this->org_folder . '/de/image/' . $this->get('row1', 'org_logo');
     }
 
     public function getOrgFavicon()
     {
-        if (! $this->get('row1', 'org_favicon'))
+        if (!$this->get('row1', 'org_favicon'))
             return '';
         return '/' . $this->org_folder . '/de/image/' . $this->get('row1', 'org_favicon');
     }
@@ -594,17 +611,17 @@ class BayCMSContext
 
     public function getUserId()
     {
-        return $this->row1['id_benutzer']??0;
+        return $this->row1['id_benutzer'] ?? 0;
     }
 
     public function getPower()
     {
-        return $this->row1['power']??0;
+        return max($this->row1['power'] ?? 0, $this->row1['ip_power'] ?? 0);
     }
 
     public function getMinPower()
     {
-        return $this->min_power??0;
+        return $this->min_power ?? 0;
     }
 
 }

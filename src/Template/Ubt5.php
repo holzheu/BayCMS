@@ -563,7 +563,7 @@ class Ubt5 extends \BayCMS\Base\BasicTemplate
 
 		if (!isset($this->settings['ubt_no_fulltextsection']))
 			$this->settings['ubt_no_fulltextsection'] = (($this->context->modul == 'gru'
-				&& $this->context->php_file == 'html.php') || !$this->context->kategorie);
+				&& $this->context->php_file == 'html.php') || !$this->context->modul);
 
 		$res = pg_query(
 			$this->context->getDbConn(),

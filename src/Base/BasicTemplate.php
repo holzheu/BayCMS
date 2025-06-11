@@ -5,31 +5,64 @@ namespace BayCMS\Base;
 // Template Class
 class BasicTemplate extends \BayCMS\Base\BayCMSBase
 {
-    protected string $tiny_css='';
-    protected string $tiny_style_formats='';
-    protected string $tiny_template='';
-    protected string $tiny_image_class='';
-    protected string $additional_body_attributes='';
-    protected string $header_style='';
+    protected string $tiny_css = '';
+    protected string $tiny_style_formats = '';
+    protected string $tiny_template = '';
+    protected string $tiny_image_class = '';
+    protected string $additional_body_attributes = '';
+    protected string $header_style = '';
 
 
-    public function __get(string $name){
-        if(isset($this->$name)) return $this->$name;
+    public function __get(string $name)
+    {
+        if (isset($this->$name))
+            return $this->$name;
         return false;
     }
 
-
-    public function getMessage($msg, $class = 'success', $notice = '')
+    protected function class2color(string $class)
     {
-        $out = '<h4' . ($class == 'danger' ? ' style="color:#ff0000;"' : '') . '>' . $msg . '</h4>';
-        if ($notice)
-            $out .= '<p>' . $notice . '</p>';
-        return $out;
+        if ($class == 'success')
+            return '#008800';
+        if ($class == 'danger')
+            return '#cc0000';
+        if ($class == 'warning')
+            return '#ff8800';
+        return '#000000';
     }
 
-    public function printMessage($msg, $class = 'success', $notice = '')
+    public function getMessage(string $msg, string $class = 'success', string $notice = '', bool $inline = false)
     {
-        echo $this->getMessage($msg, $class, $notice);
+        if (!isset($this->context) || !$this->context->commandline) {
+            if (!$inline) {
+                $out = '<h4 style="color:' . $this->class2color($class) . '">' . $msg . '</h4>';
+                if ($notice)
+                    $out .= '<p>' . $notice . '</p>';
+            } else {
+                $out = '<span style="color:' . $this->class2color($class) . '">' . $msg . '</span><br/>';
+                if ($notice)
+                    $out .= $notice . '<br/>';
+            }
+
+            return $out;
+        }
+
+        if ($class == 'danger')
+            $out = "\e[1;37;41m$msg\e[0m\n";
+        elseif ($class == 'warning')
+            $out = "\e[0;30;43m$msg\e[0m\n";
+        elseif ($class == 'success')
+            $out = "\e[1;32m$msg\e[0m\n";
+        else
+            $out = "$msg\n";
+
+        return $out . ($notice ? "$notice\n" : '');
+
+    }
+
+    public function printMessage(string $msg, string $class = 'success', string $notice = '', bool $inline = false)
+    {
+        echo $this->getMessage($msg, $class, $notice, $inline);
     }
 
     public function getCSSClass($which)
@@ -56,22 +89,25 @@ class BasicTemplate extends \BayCMS\Base\BayCMSBase
         return $html;
     }
 
-    public function getLang2Link(){
+    public function getLang2Link()
+    {
         $qs = preg_replace("/aktion=[0-9a-z_]+/i", "", $_SERVER['QUERY_STRING']);
-        if(preg_match('&/'.$this->context->org_folder.'/'.$this->context->lang.'/&',$_SERVER['PHP_SELF']))
-            $url=preg_replace('&/'.$this->context->org_folder.'/'.$this->context->lang.'/&',
-        '/'.$this->context->org_folder.'/'.$this->context->lang2.'/',
-        $_SERVER['PHP_SELF']);
-        else{
-            $url=$_SERVER['PHP_SELF'];
-            if(preg_match('/lang='.$this->context->lang.'/',$qs))
-                $qs = preg_replace('/lang='.$this->context->lang.'/','lang='.$this->context->lang2,$qs);
-            else 
-                $qs.=($qs?'&':'').'lang='.$this->context->lang2;
+        if (preg_match('&/' . $this->context->org_folder . '/' . $this->context->lang . '/&', $_SERVER['PHP_SELF']))
+            $url = preg_replace(
+                '&/' . $this->context->org_folder . '/' . $this->context->lang . '/&',
+                '/' . $this->context->org_folder . '/' . $this->context->lang2 . '/',
+                $_SERVER['PHP_SELF']
+            );
+        else {
+            $url = $_SERVER['PHP_SELF'];
+            if (preg_match('/lang=' . $this->context->lang . '/', $qs))
+                $qs = preg_replace('/lang=' . $this->context->lang . '/', 'lang=' . $this->context->lang2, $qs);
+            else
+                $qs .= ($qs ? '&' : '') . 'lang=' . $this->context->lang2;
         }
-        return $url.($qs?'?'.$qs:'');
+        return $url . ($qs ? '?' . $qs : '');
     }
-    
+
     public function getLinkInternal()
     {
         $res = pg_query(
@@ -90,7 +126,8 @@ class BasicTemplate extends \BayCMS\Base\BayCMSBase
         return $link;
     }
 
-    public function printCookieDingsBums(){
+    public function printCookieDingsBums()
+    {
         echo '
 		<div id="cookiedingsbums"><div>
 		  <span>' . $this->t('This site makes use of cookies', 'Diese Webseite verwendet Cookies') . '</span> 

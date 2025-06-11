@@ -39,6 +39,7 @@ class Org extends \BayCMS\Page\Page
             pg_prepare($this->context->getRwDbConn(), 'delete', 'delete from objekt where id=$1');
             pg_prepare($this->context->getRwDbConn(), 'move', 'update objekt set id_obj=$2 where id=$1');
             pg_prepare($this->context->getRwDbConn(), 'delete_access', 'delete from in_ls where id_lehr=$2 and id_benutzer=$1');
+            pg_prepare($this->context->getRwDbConn(), 'delete_zuordnung', 'delete from objekt_ls where id_lehr=$2 and id_obj=$1');
         }
 
         for ($i = 0; $i < pg_num_rows($res); $i++) {
@@ -48,6 +49,7 @@ class Org extends \BayCMS\Page\Page
                 if ($r2['id_lehr']) {
                     pg_execute($this->context->getRwDbConn(), 'move', [$r2['id'], $r2['id_lehr']]);
                     pg_execute($this->context->getRwDbConn(), 'delete_access', [$r2['id'], $r['id']]);
+                    pg_execute($this->context->getRwDbConn(), 'delete_zuordnung', [$r2['id'], $r['id']]);
                     $ret .= " ... <span style=\"color:#0a0;\">moved to $r2[id_lehr]</span>";
 
                 } else {
@@ -74,6 +76,7 @@ class Org extends \BayCMS\Page\Page
             if ($delete && $r2['id'] != $r['id']) {
                 if ($r2['id_lehr']) {
                     pg_execute($this->context->getRwDbConn(), 'move', [$r2['id'], $r2['id_lehr']]);
+                    pg_execute($this->context->getRwDbConn(), 'delete_zuordnung', [$r2['id'], $r['id']]);
                     $ret .= " ... <span style=\"color:#0a0;\">moved to $r2[id_lehr]</span>";
 
                 } else {

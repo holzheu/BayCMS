@@ -9,7 +9,7 @@ class AuthUniLdap extends Auth
         if(! $user) return false;
         if(! $pw) return false;
         
-        $ds = ldap_connect("ldaps://btr0x65.rz-ad.uni-bayreuth.de:636");
+        $ds = ldap_connect("ldaps://proxy-ubtrz.uni-bayreuth.de:636");
         if (!$ds)
             return false;
         ldap_set_option($ds, LDAP_OPT_PROTOCOL_VERSION, 3);

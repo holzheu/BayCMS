@@ -102,14 +102,13 @@ class Sendmail
         if (!isset($options['return_path']))
             $options['return_path'] = $from;
 
-        $to_email[0] = '';
-        $chunks_nr = 0;
         $to_header = array(
             'to' => '',
             'cc' => ''
         );
 
-        if(! isset($options['attachments'])) $options['attachments']=[];
+        if (!isset($options['attachments']))
+            $options['attachments'] = [];
 
         $to_count = 0;
         $mail = new PHPMailer();
@@ -118,14 +117,14 @@ class Sendmail
         $mail->Sender = $options['return_path'];
         $mail->Subject = $subject;
         $mail->CharSet = "UTF-8";
+        $mail->WordWrap=78;
         if ($options['html'] ?? false) {
             $mail->msgHTML($message);
-        } else
+        } else 
             $mail->Body = $message;
-        for ($i = 0; $i < count($options['attachments']); $i++) {
-            $mail->addAttachment($options['attachments'][$i]['tmp_name'], $options['attachments'][$i]['name']);
+        for ($j = 0; $j < count($options['attachments']); $j++) {
+            $mail->addAttachment($options['attachments'][$j]['tmp_name'], $options['attachments'][$j]['name']);
         }
-
 
 
 
@@ -152,20 +151,7 @@ class Sendmail
                     $to_count++;
                     if ($to_count > 49) {
                         $mail->send();
-                        $to_count = 0;
-                        $mail = new PHPMailer();
-                        $mail->isSendmail();
-                        $mail->setFrom($from, $from_fullname);
-                        $mail->Sender = $options['return_path'];
-                        $mail->Subject = $subject;
-                        $mail->CharSet = "UTF-8";
-                        if ($options['html'] ?? false) {
-                            $mail->msgHTML($message);
-                        } else
-                            $mail->Body = $message;
-                        for ($i = 0; $i < count($options['attachments']); $i++) {
-                            $mail->addAttachment($options['attachments'][$i]['tmp_name'], $options['attachments'][$i]['name']);
-                        }
+                        $mail->clearAllRecipients();
                         $to_count = 0;
                     }
                 }

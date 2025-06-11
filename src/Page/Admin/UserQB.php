@@ -288,8 +288,10 @@ class UserQB extends \BayCMS\Fieldset\QueryBuilder
                     ldap_set_option($ds, LDAP_OPT_PROTOCOL_VERSION, 3);
 
                     $ldap_res = ldap_search($ds, $m[2], 'mail=' . $_POST['email']);
+                    if(! $ldap_res)
+                        continue;
                     $info = ldap_get_entries($ds, $ldap_res);
-                    if (!$info['count'])
+                    if (! $info || !$info['count'])
                         continue;
                     $login = $info[0]['uid'][0];
                     $email = $info[0]['mail'][0];

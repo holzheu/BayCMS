@@ -15,8 +15,8 @@ class TabNavigation extends \BayCMS\Base\BayCMSBase
     public function __construct(
         \BayCMS\Base\BayCMSContext $context,
         array $names,
-        array $descriptions = null,
-        array $urls = null,
+        ?array $descriptions = null,
+        ?array $urls = null,
         int $max_length = 85,
         string $qs = ''
     ) {
@@ -30,26 +30,44 @@ class TabNavigation extends \BayCMS\Base\BayCMSBase
             $this->urls = [];
             for ($i = 0; $i < count($this->names); $i++) {
                 $this->urls[] = '?tab=' . $this->names[$i];
-                if (($_GET['tab'] ?? '') == $this->names[$i])
-                    $this->active = $i;
             }
         } else {
             $this->urls = $urls;
-            for ($i = 0; $i < count($this->urls); $i++) {
-                if (strstr($_SERVER['PHP_SELF'] . '?' . $_SERVER['QUERY_STRING'], $this->urls[$i] . '?')) {
-                    $this->active = $i;
-                    break;
-                }
-            }
         }
         $this->max_length = $max_length;
         $this->qs = $qs;
         $this->context = $context;
     }
 
+    public function addTab(string $name, ?string $description = null, ?string $url = null)
+    {
+        $this->names[] = $name;
+        if ($description === null)
+            $description = $name;
+        $this->descriptions[] = $description;
+        if ($url === null)
+            $url = "?tab=$name";
+        $this->urls[] = $url;
+    }
+
     public function getNavigation()
     {
-        if(! isset($GLOBALS['TE'])) $this->context->initTemplate();
+        for ($i = 0; $i < count($this->urls); $i++) {
+            if (isset($_GET['tab'])) {
+                if (($_GET['tab'] ?? '') == $this->names[$i]){
+                    $this->active = $i;
+                    break;
+                }
+            } else {
+                if (strstr($_SERVER['PHP_SELF'] . '?' . $_SERVER['QUERY_STRING'], $this->urls[$i] . '?')) {
+                    $this->active = $i;
+                    break;
+                }
+
+            }
+        }
+        if (!isset($GLOBALS['TE']))
+            $this->context->initTemplate();
         $out = '';
         if ($GLOBALS['TE']->isBootstrap()) {
             $out .= '<ul class="nav nav-tabs">
@@ -88,7 +106,7 @@ class TabNavigation extends \BayCMS\Base\BayCMSBase
                     $out .= '<li><a href="' . $this->addQS($this->urls[$i], $this->qs) . '">' .
                         $this->descriptions[$i] . '</a></li>' . "\n";
                 }
-                $out.="<br/>";
+                $out .= "<br/>";
             }
             //Active Row
             foreach ($rows[$active_row] as $i) {

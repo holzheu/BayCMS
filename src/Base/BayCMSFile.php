@@ -60,7 +60,7 @@ class BayCMSFile extends BayCMSObject
         return $res;
     }
 
-    public function load(int $id = null)
+    public function load(?int $id = null)
     {
         parent::load($id);
         $res = pg_query_params(
@@ -104,10 +104,13 @@ class BayCMSFile extends BayCMSObject
 
         if ($this->source) {
             $new_source = tempnam($this->context->BayCMSRoot . "/tmp", 'upload');
-            if (move_uploaded_file($this->source, $new_source))
-                $this->source = $new_source;
-            else
-                unlink($new_source);
+            if (!move_uploaded_file($this->source, $new_source)) {
+                if (is_writable($this->source))
+                    rename($this->source, $new_source);
+                else
+                    copy($this->source, $new_source);
+            }
+            $this->source = $new_source;
             if (is_writable($this->source))
                 chmod($this->source, 0644);
         }
@@ -190,23 +193,23 @@ class BayCMSFile extends BayCMSObject
     public function set(
         array $values = [],
         int $id_parent = -1,
-        string $uname = null,
+        ?string $uname = null,
         int $id_art = -1,
-        string $de = null,
-        string $en = null,
-        string $stichwort = null,
-        bool $child_allowed = null,
-        string $og_description_de = null,
-        string $og_description_en = null,
-        string $og_title_de = null,
-        string $og_title_en = null,
+        ?string $de = null,
+        ?string $en = null,
+        ?string $stichwort = null,
+        ?bool $child_allowed = null,
+        ?string $og_description_de = null,
+        ?string $og_description_en = null,
+        ?string $og_title_de = null,
+        ?string $og_title_en = null,
         int $og_img = -1,
-        string $source = null,
-        string $name = null,
-        string $path = null,
-        string $description = null,
-        bool $extract = null,
-        bool $add_id_obj = null
+        ?string $source = null,
+        ?string $name = null,
+        ?string $path = null,
+        ?string $description = null,
+        ?bool $extract = null,
+        ?bool $add_id_obj = null
     ) {
         parent::set($values, $id_parent, $uname, $id_art, $de, $en, $stichwort, $child_allowed, $og_description_de, $og_description_en, $og_title_de, $og_title_en, $og_img);
         if (isset($values['source']))
