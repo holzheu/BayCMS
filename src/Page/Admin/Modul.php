@@ -497,48 +497,6 @@ class Modul extends Page
 
         }
 
-        //object types
-        if ($echo)
-            $this->context->TE->printMessage("Objektarten", 'notice');
-
-        foreach ($this->json['art_objekt'] as $r) {
-            if (isset($r['r'])) {
-                //update
-                pg_query_params(
-                    $this->context->getRwDbConn(),
-                    'update art_objekt set view_file=$1, edit_file=$2, de=$3, en=$4, min_power=$5
-                where uname=$6',
-                    [$f_map[$r['view_file']] ?? null, $f_map[$r['edit_file']] ?? null, $r['de'], $r['en'], $r['min_power'], $r['uname']]
-                );
-                pg_query_params(
-                    $this->context->getRwDbConn(),
-                    'update objekt set de=$1, en=$2 from art_objekt ao where objekt.id=ao.id and ao.uname=$3',
-                    [$r['de'], $r['en'], $r['uname']]
-                );
-                if ($echo)
-                    $this->context->TE->printMessage("Updated $r[uname]", inline: true);
-
-            } else {
-                //insert
-                $res = pg_query($this->context->getRwDbConn(), "select max(id) as id from art_objekt");
-                [$id] = pg_fetch_row($res, 0);
-                $id++;
-                pg_query_params(
-                    $this->context->getRwDbConn(),
-                    'insert into art_objekt(id,uname,id_mod,view_file,edit_file,de,en,min_power) 
-                values ($1,$2,$3,$4,$5,$6,$7,$8)',
-                    [$id, $r['uname'], $this->id, $f_map[$r['view_file']] ?? null, $f_map[$r['edit_file']] ?? null, $r['de'], $r['en'], $r['min_power']]
-                );
-                pg_query_params(
-                    $this->context->getRwDbConn(),
-                    'insert into objekt (id,id_obj,id_art,de,en,stichwort) values ($1, $2, $3, $4, $5, $6)',
-                    [$id, $this->id, 5, $r['de'], $r['en'], $r['uname']]
-                );
-                if ($echo)
-                    $this->context->TE->printMessage("Updated $r[uname]", inline: true);
-
-            }
-        }
 
         //Mod-Dep.
         if ($echo)
@@ -590,6 +548,50 @@ class Modul extends Page
                 } catch (\Exception $e) {
                     $this->context->TE->printMessage("Update SQL $v[0].$v[1] failed", 'danger', $e->getMessage(), true);
                 }
+            }
+        }
+
+
+        //object types
+        if ($echo)
+            $this->context->TE->printMessage("Objektarten", 'notice');
+
+        foreach ($this->json['art_objekt'] as $r) {
+            if (isset($r['r'])) {
+                //update
+                pg_query_params(
+                    $this->context->getRwDbConn(),
+                    'update art_objekt set view_file=$1, edit_file=$2, de=$3, en=$4, min_power=$5
+                where uname=$6',
+                    [$f_map[$r['view_file']] ?? null, $f_map[$r['edit_file']] ?? null, $r['de'], $r['en'], $r['min_power'], $r['uname']]
+                );
+                pg_query_params(
+                    $this->context->getRwDbConn(),
+                    'update objekt set de=$1, en=$2 from art_objekt ao where objekt.id=ao.id and ao.uname=$3',
+                    [$r['de'], $r['en'], $r['uname']]
+                );
+                if ($echo)
+                    $this->context->TE->printMessage("Updated $r[uname]", inline: true);
+
+            } else {
+                //insert
+                $res = pg_query($this->context->getRwDbConn(), "select max(id) as id from art_objekt");
+                [$id] = pg_fetch_row($res, 0);
+                $id++;
+                pg_query_params(
+                    $this->context->getRwDbConn(),
+                    'insert into art_objekt(id,uname,id_mod,view_file,edit_file,de,en,min_power) 
+                values ($1,$2,$3,$4,$5,$6,$7,$8)',
+                    [$id, $r['uname'], $this->id, $f_map[$r['view_file']] ?? null, $f_map[$r['edit_file']] ?? null, $r['de'], $r['en'], $r['min_power']]
+                );
+                pg_query_params(
+                    $this->context->getRwDbConn(),
+                    'insert into objekt (id,id_obj,id_art,de,en,stichwort) values ($1, $2, $3, $4, $5, $6)',
+                    [$id, $this->id, 5, $r['de'], $r['en'], $r['uname']]
+                );
+                if ($echo)
+                    $this->context->TE->printMessage("Updated $r[uname]", inline: true);
+
             }
         }
         $this->load();
@@ -1145,6 +1147,21 @@ class Modul extends Page
             }
             $this->context->TE->printMessage("Default Links eingefügt. Bitte nutzten Sie die Indexverwaltung, um die Linknamen zu ändern.");
         }
+
+
+        if($_GET['id_file']??''){
+            $res=pg_query_params($this->context->getDbConn(),
+            "select name,non_empty(".$this->context->getLangLang2('').") as titel,beschreibung from file where id=\$1",
+            [$_GET['id_file']]);
+            $r=pg_fetch_array($res,0);
+            echo "<h4>".$r['name']." ".$r['titel']."</h4>\n";
+            if($r['beschreibung']) echo $r['beschreibung'];
+            if(preg_match('/(php|inc)$/',$r['name'])){
+                echo "<hr>\n";
+                show_source($this->context->BayCMSRoot."/".$r['name']);
+                echo "<hr>\n";
+            }
+        }
         $l = new \BayCMS\Fieldset\BayCMSList(
             $this->context,
             'file t, objekt o',
@@ -1155,7 +1172,7 @@ class Modul extends Page
             id_name: 'id_file',
             step: -1,
             write_access_query: $this->context->getPower() > 1000 ? 'true' : 'false',
-            actions: ['edit', 'del']
+            actions: ['view','edit', 'del']
         );
         $l->addField(new \BayCMS\Field\TextInput(
             $this->context,
@@ -1171,6 +1188,7 @@ class Modul extends Page
             'Index Datei',
             sql: "case when t.index_file then 'Ja' else '' end"
         ));
+
 
         echo $this->context->TE->getActionLink('?index_files=1&tab=file&id=' . $this->id, 'Links in Navigation aufnehmen', '', 'ok-sign') . ' ';
         if ($this->context->getPower() > 1000)
@@ -1266,7 +1284,7 @@ class Modul extends Page
         echo $l->getTable();
     }
 
-    public function onlineUpdate(string $uname, bool $echo = false, bool $all_files, ?string $server = null)
+    public function onlineUpdate(string $uname, bool $echo = false, bool $all_files = false, ?string $server = null)
     {
         $this->tarfile = tempnam($this->context->BayCMSRoot . '/tmp/', 'modul.update');
         copy(($server === null ? $this->server : $server) . '/de/top/gru/server.php?mod=' . $uname, $this->tarfile);

@@ -19,6 +19,12 @@ class BayCMSAuthenticator
         return $this->AUTH_OK;
     }
 
+    /**
+     * Redirects to login page
+     * @param mixed $login
+     * @param mixed $logout
+     * @return never
+     */
     public function authPage($login = '', $logout = false)
     {
         $ls_link = $this->context->org_folder;

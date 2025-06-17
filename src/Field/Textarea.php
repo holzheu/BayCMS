@@ -9,11 +9,10 @@ class Textarea extends TextInput
 
     protected int $max_display_length;
     protected bool $htmleditor;
-    protected int $max_length;
     public function __construct(
         \BayCMS\Base\BayCMSContext $context,
         string $name,
-        string $description = null,
+        ?string $description = null,
         string $id = '',
         string $sql = '',
         string $help = '',
@@ -24,15 +23,16 @@ class Textarea extends TextInput
         bool $no_add_to_query = false,
         bool $not_in_table = false,
         bool $non_empty = false,
-        array $footnote = null,
+        ?array $footnote = null,
         mixed $default_value = null,
         string $div_id = '',
         int $max_display_length = 300,
         bool $htmleditor = false,
-        int $max_length = 0
+        int $max_length = 0,
+        int $min_length = 0
 
     ) {
-        parent::__construct($context, $name, $description, $id, $sql, $help, $label_css, $input_options, $post_input, $placeholder, $no_add_to_query, $not_in_table, $non_empty, $footnote, $default_value, $div_id);
+        parent::__construct($context, $name, $description, $id, $sql, $help, $label_css, $input_options, $post_input, $placeholder, $no_add_to_query, $not_in_table, $non_empty, $footnote, $default_value, $div_id, $max_length, $min_length);
         $this->max_display_length = $max_display_length;
         $this->htmleditor = $htmleditor;
         $this->max_length = $max_length;
@@ -128,8 +128,10 @@ class Textarea extends TextInput
     }
     public function setValue($value): bool
     {
-        parent::setValue($value);
-        if (!$this->error && $this->max_length) {
+        Field::setValue($value);        
+        if($this->error) return (bool) $this->error;
+
+        if (!$this->max_length) {
             $count = mb_strlen(trim(
                 preg_replace(
                     '/&[a-z]+;/',
@@ -138,10 +140,28 @@ class Textarea extends TextInput
                 )
             ),'UTF-8');
             $this->error = $count > $this->max_length;
-            if ($this->error)
+            if ($this->error){
                 $this->inline_error = $this->t(
                     'To many characters. Only ' . $this->max_length . ' are allowed. Counting ' . $count . '.',
                     'Zu viele Zeichen. Erlaubt sind ' . $this->max_length . '. Zähle ' . $count . '.'
+                );
+                return (bool) $this->error;
+            }
+        }
+
+        if ($this->min_length) {
+            $count = mb_strlen(trim(
+                preg_replace(
+                    '/&[a-z]+;/',
+                    'x',
+                    strip_tags($value)
+                )
+            ),'UTF-8');
+            $this->error = $count < $this->min_length;
+            if ($this->error)
+                $this->inline_error = $this->t(
+                    'Not enough characters. You have to enter at least ' . $this->min_length . '. Counting ' . $count . '.',
+                    'Zu wenig Zeichen. Notwendig sind ' . $this->min_length . '. Zähle ' . $count . '.'
                 );
         }
         return (bool) $this->error;

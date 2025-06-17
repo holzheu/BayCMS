@@ -461,6 +461,7 @@ class BayCMSContext
         $title = $values[$this->lang ?? 'en'];
         if (!$title)
             $title = $values[$this->lang2 ?? 'de'];
+        if(! $title) $title='';
 
         $dt = new \DateTime();
         $dt->setTimestamp($values['utime']);
@@ -552,9 +553,9 @@ class BayCMSContext
             $this->checkObject($_GET['id_obj']);
         }
         $this->initTemplate();
-        $GLOBALS['TE']->printHeader();
+        $this->TE->printHeader();
         if (!$this->no_frame)
-            echo $GLOBALS['TE']->htmlPostprocess($this->get('page_prefix', null, ''));
+            echo $this->TE->htmlPostprocess($this->get('page_prefix', null, ''));
         $this->header_printed = true;
 
     }
@@ -563,8 +564,8 @@ class BayCMSContext
     public function printFooter()
     {
         if (!$this->no_frame)
-            echo $GLOBALS['TE']->htmlPostprocess($this->get('page_postfix', null, ''));
-        $GLOBALS['TE']->printFooter();
+            echo $this->TE->htmlPostprocess($this->get('page_postfix', null, ''));
+        $this->TE->printFooter();
         exit();
     }
 

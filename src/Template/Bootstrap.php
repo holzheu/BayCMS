@@ -2,7 +2,8 @@
 
 namespace BayCMS\Template;
 
-class Bootstrap extends \BayCMS\Base\BasicTemplate{
+class Bootstrap extends \BayCMS\Base\BasicTemplate
+{
 
     private bool $header_out = false;
     protected string $css = 'bootstrap';
@@ -21,10 +22,10 @@ class Bootstrap extends \BayCMS\Base\BasicTemplate{
     protected string $toplink = '';
     protected string $footer_text = '';
     protected string $footer_attr = '';
-    protected string $pre_nav_html='';
+    protected string $pre_nav_html = '';
 
-    protected array $breadcrumb_url=[];
-    protected array $breadcrumb_text=[];
+    protected array $breadcrumb_url = [];
+    protected array $breadcrumb_text = [];
 
 
     public function __construct(?\BayCMS\Base\BayCMSContext $context = null)
@@ -58,8 +59,9 @@ image_class_list: [
         $this->tiny_template = "'/baycms-template/bootstrap/templates.php'";
     }
 
-    public function __set(string $name, mixed $value){
-        $this->$name=$value;
+    public function __set(string $name, mixed $value)
+    {
+        $this->$name = $value;
     }
 
     public function create_slider_from_album($args)
@@ -117,7 +119,7 @@ image_class_list: [
 
     public function getMessage(string $msg, string $class = 'success', string $notice = '', bool $inline = false)
     {
-        if(! $this->context->commandline && ! $inline)
+        if (!$this->context->commandline && !$inline)
             return '<div class="alert alert-' . $class . ' alert-dismissible" role="alert">
 		<button type="button" class="close" data-dismiss="alert" aria-label="Close">
 		<span aria-hidden="true">&times;</span></button><strong>' . $msg . '</strong>' . ($notice ? '<br/>' . $notice : '') . '</div>';
@@ -204,7 +206,7 @@ image_class_list: [
             <style type="text/css">@import "/jquery/jquery.datetimepicker.min.css";</style>
             <style type="text/css">@import "/jquery/jquery.minicolors.css";</style>';
 
-        if($this->context->getOrgFavicon())
+        if ($this->context->getOrgFavicon())
             $out .= '<link rel="shortcut icon" href="' . $this->context->getOrgFavicon() . '">' . "\n";
         $out .= $this->context->ADDITIONAL_HTML_HEAD;
         $out .= $this->header_style;
@@ -489,7 +491,7 @@ image_class_list: [
 
             }
             if (!$this->no_bilang) {
-                echo "<li><a class=\"navbar-link\"  href=\"" .$this->getLang2Link(). '">
+                echo "<li><a class=\"navbar-link\"  href=\"" . $this->getLang2Link() . '">
             <img src="/baycms-template/bootstrap/' . $this->context->lang2 . '30x15.gif" alt="' .
                     $this->t('in deutsch', 'in english') . '"></a></li>';
             }
@@ -526,6 +528,84 @@ image_class_list: [
 
     }
 
+    public function getAgenda()
+    {
+        if (!$this->context->hasModule('termine'))
+            return '';
+        $lang = $this->context->lang;
+        $lang2 = $this->context->lang;
+        $limit = $this->context->get('row1', 'template_ubt2_terminanzahl', 3);
+        $res = pg_query(
+            $this->context->getDbConn(),
+            "select k.kid,non_empty(k.kategorie,'') as kategorie,t.datum=now()::date or 
+		(t.datum_bis >=now()::date and t.datum<=now()::date) as heute, 
+		case when t.datum_nur_monat then to_char(t.datum,'MM/YYYY') else 
+		d1.kurz_$lang||'.&nbsp;'||to_char(t.datum,'" . ($lang == 'de' ? "DD.MM.YYYY" : 'YYYY-MM-DD') . "') end as fdatum,
+		to_char(t.von,'HH24:MI') as fvon,to_char(t.bis,'-HH24:MI') as fbis, t.id, 
+		non_empty(t.$lang,t.$lang2) as titel 
+		from termine t left outer join tag d1 on d1.id=extract(DOW from t.datum)
+		left outer join (select k.id as kid,non_empty(k.$lang,k.$lang2) as kategorie, v.id_von 
+		from verweis v, objekt k, art_objekt ao 
+		where v.id_auf=k.id and k.geloescht is null and k.id_art=ao.id and ao.uname='t_kategorie') k on k.id_von=t.id,
+		 art_objekt ao,  objekt" . $this->context->get('row1', 'id') . " o 
+		where o.id=t.id and o.id_art=ao.id and ao.uname='termin'  
+		and t.id in (select t.id from termine t, objekt" . $this->context->getOrgId() . " o, art_objekt ao
+		where t.id=o.id and o.id_art=ao.id and ao.uname='termin' and 
+		(t.datum>=now()::date or (t.datum_bis >=now()::date and t.datum<=now()::date)) 
+		order by t.datum limit $limit) order by kategorie,t.datum,t.von"
+        );
+        if (!pg_num_rows($res))
+            return '';
+        $out = '<div class="well well-sm visible-xs visible-sm" style="margin-top:20px;">' . $this->t('Upcoming...', 'Aktuelle Termine') . '</div>';
+        $out .= '<h4 class="hidden-xs hidden-sm">' . $this->t('Upcoming...', 'Aktuelle Termine') . '</h4>';
+        $out .= '<table class="table table-condensed">';
+        $kategorie = "";
+        for ($i = 0; $i < pg_num_rows($res); $i++) {
+            $r = pg_fetch_array($res, $i);
+            if ($kategorie != $r['kategorie'] && $r['kategorie']) {
+                if ($kategorie)
+                    $out .= "<br>";
+                $kategorie = $r['kategorie'];
+                $out .= "<tr><th>$kategorie:</th></tr>";
+            }
+            $out .= '<tr><td>' . "$r[fdatum]" . ($r['heute'] == "t" ? ' <span class="label label-danger">' . $GLOBALS['context']->t('Today', 'aktuell') . '</span>' : "") .
+                "<br />
+        <a href=\"/" . $this->context->getOrgLinkLang() . "/aktuelles/" .
+                ($r['kid'] == 62437 ? "13769/kolloquium/index.php" : "termine/detail.php") . "?id_obj=$r[id]\">
+        $r[titel]</a></td></tr>\n";
+        }
+        $out .= "</table>";
+        return $out;
+    }
+
+    public function getBlog()
+    {
+        if (!$this->context->hasModule('news'))
+            return '';
+
+        $res = pg_query(
+            $this->context->getDbConn(),
+            "select to_char(von,'DD.MM.YYYY') as fvon, non_empty(" . $this->context->getLangLang2('n.') . ") as titel,n.id
+ from news n, objekt" . $this->context->getOrgId() . " o,benutzer b where typ='blog' 
+and o.id_benutzer=b.id and n.id=o.id 
+ and ((n.bis>=(now()-interval '1 year')::date or n.bis is null) and n.von<=now()::date) order by n.von desc limit 4"
+        );
+        if (!pg_num_rows($res))
+            return '';
+        $name = $this->context->get('row1', "kurz_" . $this->context->lang) . ' Blog';
+        $out = '<div class="well well-sm visible-xs visible-sm" style="margin-top:20px;">' . $name . '/div>';
+        $out .= '<h4 class="hidden-xs hidden-sm">' . $name . "</h4>";
+        $out .= '<table class="table table-condensed">';
+        $kategorie = "";
+        for ($i = 0; $i < pg_num_rows($res); $i++) {
+            $r = pg_fetch_array($res, $i);
+            $out .= "<tr><td>$r[fvon]" . ($r['heute'] == "t" ? ' <span class="label label-danger">' . translate('aktuell') . '</span>' : "") . "<br />
+    <a href=\"/" . $this->context->getLsLinkLang() . "/aktuelles/news/detail.php?id_obj=$r[id]\">$r[titel]</a></td></tr>\n";
+        }
+        $out .= "</table>";
+        return $out;
+    }
+
     public function printFooter()
     {
         echo '</div>';
@@ -540,7 +620,7 @@ image_class_list: [
         echo $this->info0;
 
         if ($this->info1 == "default")
-            include __DIR__ . "/termine.inc";
+            echo $this->getAgenda();
         else
             echo $this->info1;
 
@@ -552,14 +632,14 @@ image_class_list: [
             echo $this->info2;
 
         if ($this->info3 == "blog")
-            include __DIR__ . "/blog.inc";
+            echo $this->getBlog();
         else
             echo $this->info3;
 
         if ($this->info4 == "default")
             echo '';
         elseif ($this->info4 == "blog")
-            include __DIR__ . '/blog.inc';
+            echo $this->getBlog();
         else
             echo $this->info4;
 
