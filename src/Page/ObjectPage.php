@@ -401,9 +401,7 @@ class ObjectPage extends Page
         if (pg_num_rows($res)) {
             for ($i = 0; $i < pg_num_rows($res); $i++) {
                 $r = pg_fetch_array($res, $i);
-                echo "<a href=\"/" . $this->context->getOrgLinkLang() . "/top/gru/get.php?f=";
-                echo urlencode($this->context->BayCMSRoot . '/' . $r['name']) . "&n=" .
-                    urlencode($r['link']) . "\" target=\"_blank\">$r[get_filetype_image] $r[link]</a><br/> ";
+                echo "<a href=\"/" . $this->context->getOrgLinkLang() . "/top/gru/get.php?id=".$r['id']."\" target=\"_blank\">$r[get_filetype_image] $r[link]</a><br/> ";
             }
 
         } else

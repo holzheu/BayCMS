@@ -63,7 +63,7 @@ class BilangInput extends Field
 
     public function setValue($value): bool
     {
-        return (bool) $this->error;
+        return $this->error;
     }
 
 
@@ -80,7 +80,7 @@ class BilangInput extends Field
         foreach ($this->fields->getFields() as $f) {
             $f->setError($this->error);
         }
-        return (bool) $this->error;
+        return $this->error;
 
     }
 

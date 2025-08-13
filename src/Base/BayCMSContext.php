@@ -6,11 +6,14 @@ class BayCMSContext
     private $conn_ro = null;
     private $conn_rw = null;
 
+    //Set in localconfig.inc
     private string $BayCMSRoot;
     private string $DB_EXTERN;
     private string $DB_OWNER;
     private string $DB_NAME;
     private string $HTTP_PATH;
+
+
     private string $SID;
     private \BayCMS\Base\BasicTemplate $TE;
     private string $lang = 'de';
@@ -30,11 +33,11 @@ class BayCMSContext
     private string $H_kat_query = '';
     private string $H_kat_query_extern = '';
     private string $H_kat_query_intern = '';
+    private array $H_LoginLogout = [];
 
 
     private array $row1;
 
-    private array $H_LoginLogout = [];
     private bool $no_frame = false;
     private bool $frameable = false;
     private bool $AUTH_OK = false;
@@ -285,7 +288,7 @@ class BayCMSContext
 
     public function registerGlobal()
     {
-        trigger_error('Use of registerGlobal should be avoided for new scripts.');
+        //trigger_error('Use of registerGlobal should be avoided for new scripts.');
         $GLOBALS['row1'] = $this->row1;
         $GLOBALS['lang'] = $this->lang;
         $GLOBALS['lang2'] = $this->lang2;
@@ -521,7 +524,7 @@ class BayCMSContext
         $auth = new \BayCMS\Base\BayCMSAuthenticator($this);
         $auth->authenticate();
         $this->no_frame = $_GET['no_frame'] ?? 0;
-        if (isset($_GET['js_select']) && in_array($_GET['js_select'], array('n', '1', 'tiny'))) {
+        if (in_array($_GET['js_select']??'', array('n', '1', 'tiny'))) {
             $this->no_frame = 1;
             $this->frameable = 1;
         }

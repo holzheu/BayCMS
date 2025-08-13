@@ -20,15 +20,15 @@ class BasicTemplate extends \BayCMS\Base\BayCMSBase
         return false;
     }
 
-    protected function printHeader(){
+    public function printHeader(){
         echo "<html><body>";
     }
 
-    protected function printFooter(){
+    public function printFooter(){
         echo "</body></html>";
     }
 
-    protected function class2color(string $class)
+    public function class2color(string $class)
     {
         if ($class == 'success')
             return '#008800';

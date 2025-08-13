@@ -7,7 +7,7 @@ class YesNo extends Select
     public function __construct(
         \BayCMS\Base\BayCMSContext $context,
         string $name,
-        string $description = null,
+        ?string $description = null,
         string $id = '',
         string $sql = '',
         string $help = '',
@@ -18,7 +18,7 @@ class YesNo extends Select
         bool $no_add_to_query = false,
         bool $not_in_table = false,
         bool $non_empty = false,
-        array $footnote = null,
+        ?array $footnote = null,
         mixed $default_value = null,
         string $div_id = '',
         bool $null = true

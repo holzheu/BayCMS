@@ -9,7 +9,7 @@ class Number extends TextInput
     public function __construct(
         \BayCMS\Base\BayCMSContext $context,
         string $name,
-        string $description = null,
+        ?string $description = null,
         string $id = '',
         string $sql = '',
         string $help = '',
@@ -20,12 +20,12 @@ class Number extends TextInput
         bool $no_add_to_query = false,
         bool $not_in_table = false,
         bool $non_empty = false,
-        array $footnote = null,
+        ?array $footnote = null,
         mixed $default_value = null,
         string $div_id = '',
-        float $step = null,
-        float $min = null,
-        float $max = null
+        ?float $step = null,
+        ?float $min = null,
+        ?float $max = null
     ) {
         $input_options .= ' type="number"';
         if (!is_null($step))
@@ -73,6 +73,6 @@ class Number extends TextInput
         $this->value = $value;
         if ($this->non_empty && $this->value === null)
             $this->error = true;
-        return (bool) $this->error;
+        return $this->error;
     }
 }

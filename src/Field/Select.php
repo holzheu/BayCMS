@@ -120,7 +120,7 @@ class Select extends TextInput
         if ($this->non_empty && $value===null)
             $this->error = true;
         $this->value = $value;
-        return (bool) $this->error;
+        return $this->error;
     }
     public function getDisplayValue(): string{
         if(is_null($this->value)) return '';

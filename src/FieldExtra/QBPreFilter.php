@@ -10,7 +10,7 @@ class QBPreFilter extends QBFilter
         string $name,
         array $values,
         int $nr,
-        string $description = null,
+        ?string $description = null,
         string $id = '',
         string $sql = '',
         string $help = '',
@@ -21,7 +21,7 @@ class QBPreFilter extends QBFilter
         bool $no_add_to_query = false,
         bool $not_in_table = false,
         bool $non_empty = false,
-        array $footnote = null,
+        ?array $footnote = null,
         mixed $default_value = null,
         string $div_id = ''
 

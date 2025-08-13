@@ -43,10 +43,10 @@ class Textarea extends TextInput
     {
         $out = "<textarea id=\"" . $this->getID($form) . "\" name=\"" . $this->name . "\" ";
         if ($this->placeholder)
-            $out .= 'placeholder="' . htmlspecialchars($this->placeholder) . '"';
+            $out .= 'placeholder="' . htmlspecialchars($this->placeholder, double_encode:false) . '"';
 
         $out .= $this->input_options . ">";
-        $out .= htmlspecialchars($this->value);
+        $out .= htmlspecialchars($this->value, double_encode:false);
         $out .= '</textarea>' . "\n";
         if ($this->htmleditor)
             $out .= "<a href=\"#\" onclick='itext = document.forms[\"" . $form->getName() . "\"].elements[\"" . $this->name . "\"]; 
@@ -129,9 +129,9 @@ class Textarea extends TextInput
     public function setValue($value): bool
     {
         Field::setValue($value);        
-        if($this->error) return (bool) $this->error;
+        if($this->error) return $this->error;
 
-        if (!$this->max_length) {
+        if ($this->max_length) {
             $count = mb_strlen(trim(
                 preg_replace(
                     '/&[a-z]+;/',
@@ -145,7 +145,7 @@ class Textarea extends TextInput
                     'To many characters. Only ' . $this->max_length . ' are allowed. Counting ' . $count . '.',
                     'Zu viele Zeichen. Erlaubt sind ' . $this->max_length . '. Zähle ' . $count . '.'
                 );
-                return (bool) $this->error;
+                return $this->error;
             }
         }
 
@@ -164,7 +164,7 @@ class Textarea extends TextInput
                     'Zu wenig Zeichen. Notwendig sind ' . $this->min_length . '. Zähle ' . $count . '.'
                 );
         }
-        return (bool) $this->error;
+        return $this->error;
     }
 
     public function getDisplayValue(): string

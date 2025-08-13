@@ -269,8 +269,6 @@ class Ubt5 extends \BayCMS\Base\BasicTemplate
 		if (!$config['eref_url'])
 			return '';
 
-
-		require_once $this->context->BayCMSRoot . '/inc/pub/eref.inc';
 		$eref_json_default = '{
 "authors":{
     "sep":",",
@@ -326,7 +324,7 @@ class Ubt5 extends \BayCMS\Base\BasicTemplate
 		$json = json_decode($config['eref_config'], true);
 		$json['filter']['limit'] = $limit;
 		$json['filter']['newer_than'] = date('Y-m', time() - 3600 * 24 * $day_limit);
-		$p = new \erefParser();
+		$p = new \BayCMS\Util\ERef();
 		return $p->run($config['eref_url'], json_encode($json), 0);
 
 
@@ -342,7 +340,7 @@ class Ubt5 extends \BayCMS\Base\BasicTemplate
         <head>
         <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>' . htmlspecialchars($this->context->title) . '</title>
+        <title>' . htmlspecialchars($this->context->title, double_encode:false) . '</title>
         <meta name="layout" content="main">
         <script type="text/javascript" src="/javascript/jquery/jquery.min.js"></script>
         <script type="text/javascript" src="/javascript/jquery-ui/jquery-ui.min.js"></script>

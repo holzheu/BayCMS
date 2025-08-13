@@ -71,8 +71,8 @@ image_class_list: [
             $time = 4000;
         if (!is_numeric($id))
             return '<!-- INSERT SLIDER FAILED: ID not numeric -->';
-        $res = pg_query($GLOBALS['conn1'], "select non_empty(b.$GLOBALS[lang],b.$GLOBALS[lang2]),b.*,
-				non_empty(bb.text_$GLOBALS[lang],bb.text_$GLOBALS[lang2]) as beschr,bb.autor
+        $res = pg_query($this->context->getDbConn(), "select non_empty(".$this->context->getLangLang2('b.')."),b.*,
+				non_empty(".$this->context->getLangLang2('bb.text_').") as beschr,bb.autor
 				from bild b left outer join bild_beschreibung bb on bb.id=b.id
 				where b.id_obj=$id  and not b.intern order by b.ordnung,non_empty,b.id");
         if (!pg_num_rows($res))
@@ -190,7 +190,7 @@ image_class_list: [
         <head>
         <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>' . htmlspecialchars($this->context->title) . '</title>
+        <title>' . htmlspecialchars($this->context->title, double_encode:false) . '</title>
         <meta name="layout" content="main">
         <link rel="stylesheet"
             href="/baycms-template/' . $this->css . '/css/bootstrap.min.css">
@@ -534,7 +534,7 @@ image_class_list: [
             return '';
         $lang = $this->context->lang;
         $lang2 = $this->context->lang;
-        $limit = $this->context->get('row1', 'template_ubt2_terminanzahl', 3);
+        $limit = $this->context->get('row1', 'te_terminanzahl', 3);
         $res = pg_query(
             $this->context->getDbConn(),
             "select k.kid,non_empty(k.kategorie,'') as kategorie,t.datum=now()::date or 
@@ -568,7 +568,7 @@ image_class_list: [
                 $kategorie = $r['kategorie'];
                 $out .= "<tr><th>$kategorie:</th></tr>";
             }
-            $out .= '<tr><td>' . "$r[fdatum]" . ($r['heute'] == "t" ? ' <span class="label label-danger">' . $GLOBALS['context']->t('Today', 'aktuell') . '</span>' : "") .
+            $out .= '<tr><td>' . "$r[fdatum]" . ($r['heute'] == "t" ? ' <span class="label label-danger">' . $$this->t('Today', 'aktuell') . '</span>' : "") .
                 "<br />
         <a href=\"/" . $this->context->getOrgLinkLang() . "/aktuelles/" .
                 ($r['kid'] == 62437 ? "13769/kolloquium/index.php" : "termine/detail.php") . "?id_obj=$r[id]\">
@@ -599,7 +599,7 @@ and o.id_benutzer=b.id and n.id=o.id
         $kategorie = "";
         for ($i = 0; $i < pg_num_rows($res); $i++) {
             $r = pg_fetch_array($res, $i);
-            $out .= "<tr><td>$r[fvon]" . ($r['heute'] == "t" ? ' <span class="label label-danger">' . translate('aktuell') . '</span>' : "") . "<br />
+            $out .= "<tr><td>$r[fvon]" . ($r['heute'] == "t" ? ' <span class="label label-danger">' . $this->t('Today','aktuell') . '</span>' : "") . "<br />
     <a href=\"/" . $this->context->getLsLinkLang() . "/aktuelles/news/detail.php?id_obj=$r[id]\">$r[titel]</a></td></tr>\n";
         }
         $out .= "</table>";

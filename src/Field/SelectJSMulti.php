@@ -17,7 +17,7 @@ class SelectJSMulti extends Select
         string $name,
         string $db_query,
         string $target,
-        string $description = null,
+        ?string $description = null,
         string $id = '',
         string $sql = '',
         string $help = '',
@@ -28,10 +28,10 @@ class SelectJSMulti extends Select
         bool $no_add_to_query = true,
         bool $not_in_table = false,
         bool $non_empty = false,
-        array $footnote = null,
+        ?array $footnote = null,
         mixed $default_value = null,
         string $div_id='',
-        string $frame=null,
+        ?string $frame=null,
         string $chooser_options="toolbar=no,menubar=no,scrollbars=yes,width=700,height=500",
         bool $sorted=false,
         int $order_num=1,
@@ -61,25 +61,23 @@ class SelectJSMulti extends Select
         if ($this->sorted)
             $frame .= "&sorted=1";
         $name = $this->name;
- 
-        $out .= '<input type="hidden" name="' . $name . '" 
+        $id=$this->getID($form);
+        $out .= '<input type="hidden" name="' . $name . '" id="' . $id . '"
         value="' . htmlspecialchars($this->value) . '">';
         $out .= '
-        <textarea id="' . $this->getID($form) . '" name="' . $name . '_dp" readonly' .
+        <textarea id="' . $id . '_dp" name="' . $name . '_dp" readonly' .
             $this->input_options. '>';
         $out .= str_replace(", ", "\n", $this->getDisplayValue());
         $out .= "</textarea>\n";
         $out .= "
-        <input type=button onClick='i" . $name . "=document." . $form->getName() .
-            "." . $name . ";i" . $name . "_dp=document." .
-            $form->getName() . '.' . $name . "_dp; " . $name .
+        <input type=button onClick='i" . $name . "=document.getElementById(\"$id\");i" . $name . "_dp=document.getElementById(\"$id"."_dp\");" . $name .
             "_chooser=window.open(\"" . $frame . "&target=i" . $name . '",
           "' . $name . "_chooser\", \"" .
             $this->chooser_options . '"); ' . $name .
             "_chooser.i" . $name . "=i" . $name . "; " . $name . "_chooser.i" .
             $name . "_dp=i" . $name . "_dp; 
         window.i$name=i$name; window.i" . $name . "_dp=i" . $name . "_dp' value=\"...\">";
-        if($this->error) $out.=$this->addErrorClass($this->getID($form).'_dp');
+        if($this->error) $out.=$this->addErrorClass($id.'_dp');
 
         return $out;
 

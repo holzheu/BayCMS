@@ -9,7 +9,7 @@ class QBSQLField extends QBOrder
     public function __construct(
         \BayCMS\Base\BayCMSContext $context,
         string $name,
-        string $description = null,
+        ?string $description = null,
         string $id = '',
         string $sql = '',
         string $help = '',
@@ -20,7 +20,7 @@ class QBSQLField extends QBOrder
         bool $no_add_to_query = false,
         bool $not_in_table = false,
         bool $non_empty = false,
-        array $footnote = null,
+        ?array $footnote = null,
         mixed $default_value = null,
         string $div_id = ''
 
@@ -48,7 +48,7 @@ class QBSQLField extends QBOrder
             $f->setValueFromArray($v, $id);
             $this->value[$f->getName()] = $f->getValue();
         }
-        return (bool) $this->error;
+        return $this->error;
     }
 
     public function getInput(\BayCMS\Fieldset\Form $form): string

@@ -20,7 +20,7 @@ class Checkbox extends Radio
         if ($this->non_empty && !$value)
             $this->error = true;
         $this->value = $value;
-        return (bool) $this->error;
+        return $this->error;
     }
 
     public function getDisplayValue(): string

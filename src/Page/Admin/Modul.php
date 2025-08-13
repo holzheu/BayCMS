@@ -365,14 +365,12 @@ class Modul extends Page
             return;
         $this->context->prepare(
             'check_object_type',
-            'select * from art_objekt where uname=$1',
+            'select id from art_objekt where uname=$1',
             false
         );
         foreach ($this->json['art_objekt'] as $uname => $r_json) {
             $res = pg_execute($this->context->getDbConn(), 'check_object_type', [$uname]);
-            if (!pg_num_rows($res))
-                continue;
-            $this->json['art_objekt'][$uname]['r'] = pg_fetch_assoc($res, 0);
+            $this->json['art_objekt'][$uname]['update'] = pg_num_rows($res);
         }
     }
 
@@ -444,10 +442,11 @@ class Modul extends Page
         //save files        
         if ($echo)
             $this->context->TE->printMessage("Dateien", 'notice');
-        $f_map = [];
+        $f_map = []; //Map id_source -> id_target
         foreach ($this->json['files'] as $f => $r) {
             $file = new \BayCMS\Base\BayCMSFile($this->context);
             if (isset($r['r'])) {
+                $f_map[$r['id']] = $r['r']['id'];
                 if ($r['filetime'] < $r['r']['filetime'] && !$all_files)
                     continue;
                 $file->load($r['r']['id']);
@@ -557,7 +556,8 @@ class Modul extends Page
             $this->context->TE->printMessage("Objektarten", 'notice');
 
         foreach ($this->json['art_objekt'] as $r) {
-            if (isset($r['r'])) {
+            //key 'update' is set by checkObjectTypes
+            if ($r['update']) {
                 //update
                 pg_query_params(
                     $this->context->getRwDbConn(),
@@ -675,6 +675,7 @@ class Modul extends Page
         );
         if ($this->context->getPower() > 1000) {
             $tab->addTab('upgrade', 'Upgrade');
+            $tab->addTab('usage', 'Usage');
         }
         echo $tab->getNavigation();
 
@@ -689,6 +690,8 @@ class Modul extends Page
             $this->tabFile($aktion);
         elseif ($t == 'upgrade') {
             $this->tabUpgrade();
+        } elseif ($t == 'usage') {
+            $this->tabUsage();
         } elseif ($t == 'change') {
             if ($this->context->getPower() > 1000) {
                 $f = new \BayCMS\Fieldset\Form(
@@ -718,6 +721,19 @@ class Modul extends Page
         }
     }
 
+    private function tabUsage()
+    {
+        if ($this->context->getPower() <= 1000)
+            return;
+        $query = "select distinct l.id, non_empty(l.de, l.en), l.link
+        from lehrstuhl l, index_files i, file f, objekt o 
+        where l.id=i.id_lehr and i.id_file=f.id and f.id=o.id and o.id_obj=" . $this->id . " order by 2";
+        $res = pg_query($this->context->getDbConn(), $query);
+        for ($i = 0; $i < pg_num_rows($res); $i++) {
+            $r = pg_fetch_array($res, $i);
+            echo "<a href=\"/$r[link]\">$r[non_empty]</a><br/>";
+        }
+    }
 
     private function tabUpgrade()
     {
@@ -975,14 +991,21 @@ class Modul extends Page
         echo $l->getTable();
     }
 
-    private function del($objects = false)
+    private function del($objects = true)
     {
         if ($this->context->getPower() <= 1000)
             return;
         if ($this->id === null)
             return;
         try {
+            pg_query_params(
+                $this->context->getRwDbConn(),
+                'delete from index_files where id_file in (select f.id from file f, objekt o where f.id=o.id and o.id_obj=$1)',
+                [$this->id]
+            );
             pg_query_params($this->context->getRwDbConn(), 'delete from objekt where id_obj=$1', [$this->id]);
+            if ($this->row['delete_sql'])
+                pg_query($this->context->getRwDbConn(), $this->row['delete_sql']);
             if ($objects) {
                 pg_query_params(
                     $this->context->getRwDbConn(),
@@ -990,10 +1013,10 @@ class Modul extends Page
                     [$this->id]
                 );
             }
+            pg_query_params($this->context->getRwDbConn(), 'delete from objekt where id in (select id from art_objekt where id_mod=$1)', [$this->id]);
             pg_query_params($this->context->getRwDbConn(), 'delete from art_objekt where id_mod=$1', [$this->id]);
             pg_query_params($this->context->getRwDbConn(), 'delete from objekt where id=$1', [$this->id]);
-            if ($this->row['delete_sql'])
-                pg_query($this->context->getRwDbConn(), $this->row['delete_sql']);
+
             $this->context->TE->printMessage('Modul deleted');
             $this->context->printFooter();
         } catch (\Exception $e) {
@@ -1149,16 +1172,19 @@ class Modul extends Page
         }
 
 
-        if($_GET['id_file']??''){
-            $res=pg_query_params($this->context->getDbConn(),
-            "select name,non_empty(".$this->context->getLangLang2('').") as titel,beschreibung from file where id=\$1",
-            [$_GET['id_file']]);
-            $r=pg_fetch_array($res,0);
-            echo "<h4>".$r['name']." ".$r['titel']."</h4>\n";
-            if($r['beschreibung']) echo $r['beschreibung'];
-            if(preg_match('/(php|inc)$/',$r['name'])){
+        if ($_GET['id_file'] ?? '') {
+            $res = pg_query_params(
+                $this->context->getDbConn(),
+                "select name,non_empty(" . $this->context->getLangLang2('') . ") as titel,beschreibung from file where id=\$1",
+                [$_GET['id_file']]
+            );
+            $r = pg_fetch_array($res, 0);
+            echo "<h4>" . $r['name'] . " " . $r['titel'] . "</h4>\n";
+            if ($r['beschreibung'])
+                echo $r['beschreibung'];
+            if (preg_match('/(php|inc)$/', $r['name'])) {
                 echo "<hr>\n";
-                show_source($this->context->BayCMSRoot."/".$r['name']);
+                show_source($this->context->BayCMSRoot . "/" . $r['name']);
                 echo "<hr>\n";
             }
         }
@@ -1172,7 +1198,7 @@ class Modul extends Page
             id_name: 'id_file',
             step: -1,
             write_access_query: $this->context->getPower() > 1000 ? 'true' : 'false',
-            actions: ['view','edit', 'del']
+            actions: ['view', 'edit', 'del']
         );
         $l->addField(new \BayCMS\Field\TextInput(
             $this->context,

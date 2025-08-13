@@ -12,6 +12,7 @@ class Form extends TabFieldset
     protected string $write_access_query;
 
     protected ?string $uname;
+    protected bool $object_only = false;
     protected string $qs;
     protected bool $cancel_button;
     protected bool $delete_button;
@@ -48,6 +49,7 @@ class Form extends TabFieldset
         ?string $en = null,
         ?int $id_parent = -1,
         ?string $stichwort = null,
+        bool $object_only = false
     ) {
         $this->name = $name;
         $this->method = $method;
@@ -69,10 +71,12 @@ class Form extends TabFieldset
         $this->en = $en;
         $this->id_parent = $id_parent;
         $this->stichwort = $stichwort;
+        $this->object_only = $object_only;
     }
 
 
-    public function __get(string $name){
+    public function __get(string $name)
+    {
         return $this->$name;
     }
     public function getId(): ?int
@@ -80,7 +84,7 @@ class Form extends TabFieldset
         return $this->id;
     }
 
-    public function setId($id)
+    public function setId($id=null)
     {
         $this->id = $id;
     }
@@ -151,13 +155,17 @@ class Form extends TabFieldset
                 ) . " ";
         }
 
-        if ($takeover_link && ($_GET['js_select'] ?? false))
+        if ($takeover_link && ($_GET['js_select'] ?? false)){
+            $v=$this->getField(0)->getValue();
+            if(is_array($v)) $v=(($v['de']??'')?$v['de']:($v['en']??''));
             $actions .= $this->context->TE->getActionLink(
                 "#",
                 $this->t("take over", "übernehmen"),
-                " onClick=\"add('" . $this->id . "','" . addslashes($this->getField(0)->getValue()) . "')\"",
+                " onClick=\"add('" . $this->id . "','" . addslashes($v) . "')\"",
                 'ok'
             ) . " ";
+        }
+            
 
 
 
@@ -305,7 +313,7 @@ class Form extends TabFieldset
             throw new \BayCMS\Exception\missingData("Cannot save form without setting table");
         }
 
-        pg_query($this->context->getRwDbConn(), 'begin');
+        $ok=pg_query($this->context->getRwDbConn(), 'begin');
         $uname = $this->uname ?? false;
         if ($uname) {
             $obj = new \BayCMS\Base\BayCMSObject($this->context);
@@ -326,7 +334,6 @@ class Form extends TabFieldset
                 $obj->load($this->id);
             $obj->set($prop);
             $id = $obj->save(false);
-
         } else {
             //Table only
             if (is_null($this->id)) {
@@ -349,21 +356,26 @@ class Form extends TabFieldset
             $values[] = $v;
         }
 
-        if (is_null($this->id)) {
-            $query = 'insert into ' . $table . '(' . $insert_query_fields . ',id) 
+        if (!$this->object_only) {
+            if (is_null($this->id)) {
+                $query = 'insert into ' . $table . '(' . $insert_query_fields . ',id) 
                 values (' . $insert_query_values . ',$' . $i . ')';
-            $this->id = $id;
-        } else {
-            $query = $update_query . ' where id=$' . $i;
-        }
-        $values[] = $this->id;
+                $this->id = $id;
+            } else {
+                $query = $update_query . ' where id=$' . $i;
+            }
+            $values[] = $this->id;
 
-        $ok = pg_query_params($this->context->getRwDbConn(), $query, $values);
-        if (!$ok){
-            $e=pg_last_error($this->context->getRwDbConn());
-            pg_query($this->context->getRwDbConn(), 'rollback');
-            throw new \BayCMS\Exception\databaseError($e);
+            $ok = pg_query_params($this->context->getRwDbConn(), $query, $values);
+            if (!$ok) {
+                $e = pg_last_error($this->context->getRwDbConn());
+                pg_query($this->context->getRwDbConn(), 'rollback');
+                throw new \BayCMS\Exception\databaseError($e);
+            }
+        } else if($this->id === null) {
+            $this->id=$id;
         }
+
         foreach ($this->fields as $f) {
             $ok = $f->save($this);
             if (!$ok) {

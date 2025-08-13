@@ -17,7 +17,7 @@ class HtmlTable extends Field
         \BayCMS\Base\BayCMSContext $context,
         string $name,
         array $cols,
-        string $description = null,
+        ?string $description = null,
         string $id = '',
         string $sql = '',
         string $help = '',
@@ -28,7 +28,7 @@ class HtmlTable extends Field
         bool $no_add_to_query = false,
         bool $not_in_table = false,
         bool $non_empty = false,
-        array $footnote = null,
+        ?array $footnote = null,
         mixed $default_value = null,
         string $div_id = '',
         array $col_input_options = [],
@@ -146,7 +146,7 @@ function " . $this->getID($form) . "calculateTotal( src ) {
             $this->value=$this->post2value();
         else 
             $this->value=$v[$this->name]??'';
-        return (bool) $this->error;
+        return $this->error;
 
     }
 

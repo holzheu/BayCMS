@@ -12,7 +12,7 @@ class QBOrder extends \BayCMS\Field\Field
         \BayCMS\Base\BayCMSContext $context,
         string $name,
         array $values,
-        string $description = null,
+        ?string $description = null,
         string $id = '',
         string $sql = '',
         string $help = '',
@@ -23,7 +23,7 @@ class QBOrder extends \BayCMS\Field\Field
         bool $no_add_to_query = false,
         bool $not_in_table = false,
         bool $non_empty = false,
-        array $footnote = null,
+        ?array $footnote = null,
         mixed $default_value = null,
         string $div_id = ''
 
@@ -52,7 +52,7 @@ class QBOrder extends \BayCMS\Field\Field
             $f->setValueFromArray($v, $id);
             $this->value[$f->getName()] = $f->getValue();
         }
-        return (bool) $this->error;
+        return $this->error;
     }
 
     public function getInput(\BayCMS\Fieldset\Form $form): string

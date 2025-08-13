@@ -7,7 +7,7 @@ class BilangTextarea extends BilangInput
     public function __construct(
         \BayCMS\Base\BayCMSContext $context,
         string $name,
-        string $description = null,
+        ?string $description = null,
         string $id = '',
         string $sql = '',
         array $help = ['de'=>'','en'=>''],
@@ -18,7 +18,7 @@ class BilangTextarea extends BilangInput
         bool $no_add_to_query = false,
         bool $not_in_table = false,
         bool $non_empty=false,
-        array $footnote = null,
+        ?array $footnote = null,
         array $default_value = ['de'=>'','en'=>''],
         string $div_id='',
         bool $htmleditor=false

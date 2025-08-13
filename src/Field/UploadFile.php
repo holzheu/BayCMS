@@ -12,7 +12,7 @@ class UploadFile extends Upload
     public function __construct(
         \BayCMS\Base\BayCMSContext $context,
         string $name,
-        string $description = null,
+        ?string $description = null,
         string $id = '',
         string $sql = '',
         string $help = '',
@@ -23,14 +23,14 @@ class UploadFile extends Upload
         bool $no_add_to_query = true,
         bool $not_in_table = false,
         bool $non_empty = false,
-        array $footnote = null,
+        ?array $footnote = null,
         mixed $default_value = null,
         string $div_id = '',
         string $accept = '',
         string $path = 'inc/named_files',
-        string $uname = null,
+        ?string $uname = null,
         string $preg_match = '',
-        int $self_edit=null,
+        ?int $self_edit=null,
         int $max_size=0
     ) {
         parent::__construct($context, $name, $description, $id, $sql, $help, $label_css, $input_options, $post_input, $placeholder, $no_add_to_query, $not_in_table, $non_empty, $footnote, $default_value, $div_id, $accept,$max_size, $preg_match);
@@ -137,7 +137,7 @@ class UploadFile extends Upload
             $this->value .= urlencode($name);
             $this->value .= "\" target=\"_blank\">$img $name ($size kb)</a> ";
         }
-        return (bool) $this->error;
+        return $this->error;
 
     }
 

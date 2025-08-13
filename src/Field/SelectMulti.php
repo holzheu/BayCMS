@@ -45,7 +45,7 @@ class SelectMulti extends Select
 
         if ($this->non_empty && !count($this->value))
             $this->error = true;
-        return (bool) $this->error;
+        return $this->error;
     }
 
     public function getValue(): string

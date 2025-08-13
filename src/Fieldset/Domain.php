@@ -9,8 +9,8 @@ class Domain extends Fieldset
 
     protected \BayCMS\Fieldset\Form $sform;
     protected \BayCMS\Fieldset\Form $eform;
-
     protected \BayCMS\Fieldset\BayCMSList $list;
+    protected ?\BayCMS\Page\Page $detail=null;
 
     protected string $error_string = '';
     protected array $fields;
@@ -19,6 +19,7 @@ class Domain extends Fieldset
     protected string $table;
     protected string $name;
     protected string $uname;
+    protected bool $object_only = false;
     protected string $id_name;
     protected bool $delete_button;
     protected bool $object_button;
@@ -29,12 +30,14 @@ class Domain extends Fieldset
     protected bool $no_table_on_edit;
     protected bool $no_create_on_upload;
     protected bool $erase_object;
+    protected string $check_before_del_sql;
     protected bool $headline;
 
     protected ?string $tinyurl;
 
     protected string $from;
     protected string $where;
+
     // properties for list
     // not set by constructor
     protected ?string $squery = null;
@@ -55,7 +58,7 @@ class Domain extends Fieldset
     protected array $additional_export_formats = [];
     protected bool $jquery_row_click = true;
 
-    
+
     public function __construct(
         \BayCMS\Base\BayCMSContext $context,
         string $table,
@@ -74,7 +77,10 @@ class Domain extends Fieldset
         ?string $tinyurl = null,
         bool $no_create_on_upload = false,
         bool $erase_object = false,
-        bool $headline=true
+        bool $headline = true,
+        bool $object_only = false,
+        string $check_before_del_sql = '',
+        ?\BayCMS\Page\Page $detail = null
     ) {
         $this->context = $context;
         $this->table = $table;
@@ -85,9 +91,10 @@ class Domain extends Fieldset
         $this->object_button = ($object_button ?? $uname);
         $this->qs = $qs;
 
-        if(! $this->qs && isset($_GET['js_select'])){
-            $this->qs='js_select='.$_GET['js_select'];
-            if($_GET['target']??'') $this->qs.='&target='.$_GET['target'];
+        if (!$this->qs && isset($_GET['js_select'])) {
+            $this->qs = 'js_select=' . $_GET['js_select'];
+            if ($_GET['target'] ?? '')
+                $this->qs .= '&target=' . $_GET['target'];
         }
         $this->write_access_query = $write_access_query ?? ($uname ? 'check_objekt(t.id,' . $this->context->getUserId() . ')' : 'true');
         $this->from = $from ?? $this->table . ' t' .
@@ -99,11 +106,15 @@ class Domain extends Fieldset
         $this->tinyurl = $tinyurl;
         $this->no_create_on_upload = $no_create_on_upload;
         $this->erase_object = $erase_object;
-        $this->headline=$headline;
-        
+        $this->headline = $headline;
+        $this->object_only = $object_only;
+        $this->check_before_del_sql = $check_before_del_sql;
+        if($detail!==null) $this->detail=$detail;
+
     }
 
-    public function __get(string $key){
+    public function __get(string $key)
+    {
         return $this->$key;
     }
 
@@ -261,12 +272,12 @@ class Domain extends Fieldset
             name: 'sform',
             qs: $this->qs
         );
-        $count=0;
+        $count = 0;
         foreach ($this->fields as $f) {
             if (!$f->get('search_field'))
                 continue;
-            $f2=clone($f);
-            $f2->non_empty=false;
+            $f2 = clone ($f);
+            $f2->non_empty = false;
             $this->sform->addField($f2);
             $count++;
         }
@@ -300,7 +311,8 @@ class Domain extends Fieldset
             qs: $this->qs,
             delete_button: $this->delete_button,
             object_button: $this->object_button,
-            write_access_query: $this->write_access_query
+            write_access_query: $this->write_access_query,
+            object_only: $this->object_only
         );
         foreach ($this->fields as $f) {
             if (!$f->get('edit_field'))
@@ -402,15 +414,14 @@ class Domain extends Fieldset
     public function getHead()
     {
         $head = ($_GET['js_select'] ?? false ?
-            ($this->de() ?
-                $this->name . ' auswählen' : 'Select ' . $this->name) :
-            ($this->de() ?
-                $this->name . ' verwalten' : 'Manage ' . $this->name));
-        $out='';
-        if($this->headline)
+            $this->t('Select ' . $this->name, $this->name . ' auswählen') :
+            $this->t('Manage ' . $this->name, $this->name . ' verwalten')
+        );
+        $out = '';
+        if ($this->headline)
             $out .= "<h3>$head</h3>\n";
         if ($_GET['js_select'] ?? false) {
-            $out.=\BayCMS\Util\JSHead::get($this->tinyurl);
+            $out .= \BayCMS\Util\JSHead::get($this->tinyurl);
         }
         $out .= $this->comment;
         return $out;
@@ -715,6 +726,16 @@ class Domain extends Fieldset
         $this->id = $_GET[$this->id_name] ?? null;
         $ok = 1;
         $error = '';
+        if ($action == 'del' && $this->check_before_del_sql) {
+            $res = pg_query_params($this->context->getDbConn(), $this->check_before_del_sql, [$this->id]);
+            if (pg_num_rows($res)) {
+
+                $error = $this->t('Cannot delete entry. There are references.', 'Kann Eintrag nicht löschen, weil es noch Verweise gibt.');
+                return ['html' => '', 'error' => $error, 'message' => '', 'edit' => 0, 'id' => $this->id];
+            }
+        }
+
+
         if ($action == 'del') {
             if ($this->uname ?? '') {
                 $obj = new \BayCMS\Base\BayCMSObject($this->context);
@@ -746,7 +767,7 @@ class Domain extends Fieldset
                 $this->id = null;
             } else
                 $message = '';
-            return ['html' => '', 'error' => $error, 'message' => $message, 'edit' => 0, 'id'=>null];
+            return ['html' => '', 'error' => $error, 'message' => $message, 'edit' => 0, 'id' => null];
         }
 
         $error = '';
@@ -788,6 +809,8 @@ class Domain extends Fieldset
         if ($action == 'save') {
             try {
                 $this->id = $this->eform->save();
+                if($this->detail!==null) $this->detail->page();
+                
                 $html .= $this->eform->getTable(
                     delete_link: $this->delete_button,
                     object_link: $this->object_button,
@@ -819,7 +842,9 @@ class Domain extends Fieldset
      */
     public function getSearch()
     {
-        if(! $this->createSearchForm()) return ['html' => '', 'error' => '', 'message' => ''];;
+        if (!$this->createSearchForm())
+            return ['html' => '', 'error' => '', 'message' => ''];
+        ;
         $this->sform->setValues($_GET);
         $html = $this->sform->getSearchForm() . "<br/>\n";
         $qs = $this->sform->getQS();
@@ -877,7 +902,6 @@ class Domain extends Fieldset
         echo $edit['html'];
         if ($edit['edit'] && $this->no_table_on_edit)
             return $this->context->printFooter();
-        ;
 
         echo $search['html'];
         echo $this->getList()['html'];
@@ -887,7 +911,8 @@ class Domain extends Fieldset
      * Prints out all non HTML stuff
      * @return void
      */
-    public function pagePreHeader(){
+    public function pagePreHeader()
+    {
         if (isset($_GET['baycmsExportFormat'])) {
             $this->getSearch(); //sets squery for export!
             $this->createList('export');
@@ -903,7 +928,9 @@ class Domain extends Fieldset
     /**
      * Prints out all HTML-Stuff
      */
-    public function pagePostHeader(string $post_content=''){
+    public function pagePostHeader(string $post_content = '')
+    {
+
         $search = $this->getSearch();
         echo $this->getHead();
         if (($_SESSION['domain_upload_resume'] ?? false) || ($_GET['aktion'] ?? '') == 'upload') {
@@ -940,9 +967,11 @@ class Domain extends Fieldset
      * Full page function (html, json, export)
      * @return void
      */
-    public function page(string $pre_content='', string $post_content='')
+    public function page(string $pre_content = '', string $post_content = '')
     {
         $this->pagePreHeader();
+        if($this->detail!==null && ! isset($_GET['aktion']) && isset($_GET[$this->id_name])) $this->detail->page();
+
         $this->context->printHeader();
         echo $pre_content;
         $this->pagePostHeader($post_content);

@@ -9,7 +9,7 @@ class Comment extends Field
     public function __construct(
         \BayCMS\Base\BayCMSContext $context,
         string $name,
-        string $description = null,
+        ?string $description = null,
         string $id = '',
         string $sql = '',
         string $help = '',
@@ -20,7 +20,7 @@ class Comment extends Field
         bool $no_add_to_query = true,
         bool $not_in_table = false,
         bool $non_empty=false,
-        array $footnote = null,
+        ?array $footnote = null,
         string $div_id='',
         bool $not_in_form = false
     ) {

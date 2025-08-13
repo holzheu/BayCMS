@@ -60,10 +60,10 @@ class SelectJS extends Select
             $target .= "?js_select=1";
 
         $name = $this->name;
-        
-        $out .= '<input id="' . $this->getID($form).'" type="hidden" name="' . $name . '" 
+        $id=$this->getID($form);
+        $out .= '<input id="' . $id.'" type="hidden" name="' . $name . '" 
         value="' . htmlspecialchars($this->value) . '">';
-        $out .= '<input id="' . $this->getID($form) . '_dp" name="' . $name . '_dp" ';
+        $out .= '<input id="' . $id . '_dp" name="' . $name . '_dp" ';
         $out .= 'value="' . htmlspecialchars($this->getDisplayValue()) . '" ';
         if ($this->placeholder)
             $out .= ' placeholder="' . htmlspecialchars($this->placeholder) . '"';
@@ -74,10 +74,8 @@ class SelectJS extends Select
 
         if ($this->button)
             $out .= "
-        <input type=button onClick='i" . $name . "=document." . $form->getName() .
-                "." . $name . ";i" . $name . "_dp=document." .
-                $form->getName() . '.' . $name . "_dp; " . $name .
-                "_chooser=window.open(\"" . $target . "&target=i" . $name . '",
+        <input type=button onClick='i" . $name . "=document.getElementById(\"$id\");i" . $name . "_dp=document.getElementById(\"$id"."_dp\");". 
+        $name ."_chooser=window.open(\"" . $target . "&target=i" . $name . '",
           "' . $name . "_chooser\", \"" .
                 $this->chooser_options . '"); ' . $name .
                 "_chooser.i" . $name . "=i" . $name . "; " . $name . "_chooser.i" .
@@ -107,7 +105,7 @@ class SelectJS extends Select
             })
             </script>';
         }
-        if($this->error) $out.=$this->addErrorClass($this->getID($form).'_dp');
+        if($this->error) $out.=$this->addErrorClass($id.'_dp');
         return $out;
 
     }

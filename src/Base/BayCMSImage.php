@@ -132,7 +132,7 @@ class BayCMSImage extends BayCMSRow
                 if (count($this->ids_created_from_zip))
                     return 0; //zip in zip!!
                 $v_main = $this->get(); //get current Image settings 
-                $tempfile = tempnam(sys_get_temp_dir(), '');
+                $tempfile = tempnam($this->context->BayCMSRoot . "/tmp", 'upload');
                 // tempnam creates file on disk
                 if (file_exists($tempfile)) {
                     unlink($tempfile);
@@ -165,7 +165,9 @@ class BayCMSImage extends BayCMSRow
                         continue;
                     }
                 }
-                return $this->id;
+                return count($this->ids_created_from_zip)? 
+                    $this->ids_created_from_zip[count($this->ids_created_from_zip)-1]: 
+                    0;
 
             }
 
@@ -237,14 +239,14 @@ class BayCMSImage extends BayCMSRow
 
     public function set(
         array $v = [],
-        string $name = null,
-        string $source = null,
+        ?string $name = null,
+        ?string $source = null,
         int $id_obj = -1,
         int $height = -1,
         int $theight = -1,
-        string $de = null,
-        string $en = null,
-        bool $internal = null,
+        ?string $de = null,
+        ?string $en = null,
+        ?bool $internal = null,
         float $crop = -1,
         float $tcrop = -1
 

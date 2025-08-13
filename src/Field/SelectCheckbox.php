@@ -15,7 +15,7 @@ class SelectCheckbox extends SelectMulti
     public function __construct(
         \BayCMS\Base\BayCMSContext $context,
         string $name,
-        string $description = null,
+        ?string $description = null,
         string $id = '',
         string $sql = '',
         string $help = '',
@@ -26,11 +26,11 @@ class SelectCheckbox extends SelectMulti
         bool $no_add_to_query = false,
         bool $not_in_table = false,
         bool $non_empty = false,
-        array $footnote = null,
+        ?array $footnote = null,
         array $default_value = [],
         string $div_id = '',
         bool $null = false,
-        array $values = null,
+        ?array $values = null,
         string $db_query = '',
         string $free_input = ''
     ) {
@@ -119,7 +119,7 @@ class SelectCheckbox extends SelectMulti
         $this->value = $value;
         if ($this->non_empty && !count($this->value))
             $this->error = true;
-        return (bool) $this->error;
+        return $this->error;
     }
 
     public function getInput(\BayCMS\Fieldset\Form $form): string

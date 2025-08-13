@@ -43,7 +43,7 @@ class TextInput extends Field
     public function setValue($value): bool
     {
         parent::setValue($value);
-        if($this->error) return (bool) $this->error;
+        if($this->error) return $this->error;
         if ($this->max_length) {
             $count = mb_strlen(trim($value),'UTF-8');
             $this->error = $count > $this->max_length;
@@ -52,7 +52,7 @@ class TextInput extends Field
                     'To many characters. Only ' . $this->max_length . ' are allowed. Counting ' . $count . '.',
                     'Zu viele Zeichen. Erlaubt sind ' . $this->max_length . '. Zähle ' . $count . '.'
                 );
-                return (bool) $this->error;
+                return $this->error;
             }
                 
         }
@@ -67,7 +67,7 @@ class TextInput extends Field
                 );
         }
 
-        return (bool) $this->error;
+        return $this->error;
     }
 
 
@@ -75,9 +75,9 @@ class TextInput extends Field
     {
         $out = "<input id=\"" . $this->getID($form) . "\" name=\"" . $this->name . "\" ";
         if ($this->placeholder)
-            $out .= 'placeholder="' . htmlspecialchars($this->placeholder) . '"';
+            $out .= 'placeholder="' . htmlspecialchars($this->placeholder, double_encode:false) . '"';
 
-        $out .= " value=\"" . htmlspecialchars($this->value) . "\"";
+        $out .= " value=\"" . htmlspecialchars($this->value, double_encode:false) . "\"";
         $out .= $this->input_options . ">";
         if($this->error) $out.=$this->addErrorClass($this->getID($form));
         return $out;

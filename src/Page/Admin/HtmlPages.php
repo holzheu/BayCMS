@@ -44,7 +44,7 @@ class HtmlPages extends \BayCMS\Page\Page
             $_POST['en'] = 'Imprint';
             $_POST['text_de'] = \BayCMS\Util\Imprint::de();
             $_GET['aktion'] = 'save';
-            $_POST['min_power']=0;
+            $_POST['min_power'] = 0;
         }
         $this->edit('imprint');
         if ($_GET['id'] != $config['impressum_id']) {
@@ -140,6 +140,14 @@ class HtmlPages extends \BayCMS\Page\Page
             
             '
         ));
+        if ($type == 'html' && ($_GET['id'] ?? ''))
+            $form->addField(new \BayCMS\Field\Checkbox(
+                $this->context,
+                name: 'save_as_copy',
+                no_add_to_query: 1,
+                not_in_table: 1,
+                description: $this->t('Save as new entry', 'Als neuen Eintrag speichern')
+            ));
         return $form;
     }
     public function detail($type = 'html')
@@ -224,6 +232,9 @@ class HtmlPages extends \BayCMS\Page\Page
         }
 
         if ($_GET['aktion'] == 'save') {
+            if ($_POST['save_as_copy'] ?? false)
+                $form->setId(null);
+
             try {
                 $_GET['id'] = $form->save();
                 $this->context->TE->printMessage($this->t('Page saved', 'Seite gespeichert'));

@@ -340,6 +340,7 @@ class BayCMSObject extends BayCMSRow
         }
         return true;
     }
+    
     public function checkAccess()
     {
         if ($this->id === null)

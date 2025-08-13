@@ -491,7 +491,7 @@ class NavIndex extends \BayCMS\Page\Page
         if ($id) {
             if ($id > 10000)
                 $ok = pg_query(
-                    $this->context->getDbConn(),
+                    $this->context->getRwDbConn(),
                     "update kategorie set 
                     de='" . htmlspecialchars($de) . "',
                     en='" . htmlspecialchars($en) . "',

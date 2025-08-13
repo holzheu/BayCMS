@@ -145,7 +145,8 @@ class BayCMSAuthenticator
             hat_zugang($row1[id],id," . $this->context->kat_id . ")
 			from benutzer where id=$r[id]) b, in_ls il
 			where il.power=b.power and 
-            (il.id_lehr=$row1[id] and in_gruppe(b.id,il.id_benutzer)) or il.power>=10000");
+            (il.id_lehr=$row1[id] and in_gruppe(b.id,il.id_benutzer)) 
+            or (b.id=il.id_benutzer and il.power>=10000 and (il.bis is null or il.bis<=now()::date))");
         if (pg_num_rows($res))
             $r = pg_fetch_array($res, 0);
         else
@@ -358,10 +359,10 @@ class BayCMSAuthenticator
             "select b.*,
             il.last_login is null or il.last_login<(now()-interval '0.5 day') as update_lastlogin,
 			il.id_benutzer as id_eff from
-			(select *,get_max_login_power(id,$row1[id]) as power,hat_zugang($row1[id],id," . $this->context->kat_id . ")
-			from benutzer where id=$r[id]) b,in_ls il
+			(select *, get_max_login_power(id,$row1[id]) as power, hat_zugang($row1[id], id," . $this->context->kat_id . ")
+			from benutzer where id=$r[id]) b, in_ls il
 			where il.power=b.power and (il.id_lehr=$row1[id] and in_gruppe(b.id,il.id_benutzer)) 
-            or (il.power>=10000 and (il.bis is null or il.bis<=now()::date))"
+            or (b.id=il.id_benutzer and il.power>=10000 and (il.bis is null or il.bis<=now()::date))"
         );
         if (pg_num_rows($res))
             $r = pg_fetch_array($res, 0);

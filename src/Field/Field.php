@@ -6,11 +6,6 @@ use function PHPUnit\Framework\returnSelf;
 
 abstract class Field extends \BayCMS\Base\BayCMSBase
 {
-
-    /**
-     * Settings array
-     * @var array
-     */
     protected bool $error = false;
     protected string $inline_error = '';
     protected string $name;
@@ -199,7 +194,7 @@ abstract class Field extends \BayCMS\Base\BayCMSBase
             $this->value=$this->default_value;
         if ($this->non_empty && !$this->value)
             $this->error = true;
-        return (bool) $this->error;
+        return $this->error;
     }
 
     public function disable()

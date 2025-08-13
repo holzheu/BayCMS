@@ -95,6 +95,8 @@ class BootstrapBayceerLs extends Bootstrap
 	<div class="clearfix"></div>
 	';
 		$this->css = 'bootstrap.bayceer';
+		$this->home_nav = true;
+
 		$this->tiny_css = '/baycms-template/' . $this->css . '/css/bootstrap.min.css';
 
 		$this->no_brand = false;
