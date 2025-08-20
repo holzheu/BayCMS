@@ -436,4 +436,24 @@ class ERef
         else
             return $out;
     }
+
+    public function endpoint(){
+        if(! isset($_POST['url'])){
+            header($_SERVER['SERVER_PROTOCOL'] . ' 500 No url', true, 500);       
+            exit;
+        }
+        if(! isset($_POST['json'])){
+            header($_SERVER['SERVER_PROTOCOL'] . ' 500 No json', true, 500);       
+            exit;
+        }
+        if(! json_decode($_POST['json'], True)){
+            header($_SERVER['SERVER_PROTOCOL'] . ' 500 Invalid json', true, 500);       
+            exit;
+        }
+
+        echo "<!DOCTYPE html><html><body><section class=\"publications\">";
+        $this->run($_POST['url'], $_POST['json']);
+        echo "</section></body></html>";
+
+    }
 }

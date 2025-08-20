@@ -568,7 +568,7 @@ image_class_list: [
                 $kategorie = $r['kategorie'];
                 $out .= "<tr><th>$kategorie:</th></tr>";
             }
-            $out .= '<tr><td>' . "$r[fdatum]" . ($r['heute'] == "t" ? ' <span class="label label-danger">' . $$this->t('Today', 'aktuell') . '</span>' : "") .
+            $out .= '<tr><td>' . "$r[fdatum]" . ($r['heute'] == "t" ? ' <span class="label label-danger">' . $this->t('Today', 'aktuell') . '</span>' : "") .
                 "<br />
         <a href=\"/" . $this->context->getOrgLinkLang() . "/aktuelles/" .
                 ($r['kid'] == 62437 ? "13769/kolloquium/index.php" : "termine/detail.php") . "?id_obj=$r[id]\">

@@ -25,7 +25,8 @@ class AuthUniLdap extends Auth
         $res = pg_query(
             $this->context->getDbConn(),
             "select mdc.uname, non_empty(mlc.value,mdc.value) as value from modul_default_config mdc left outer join 
-            (select * from modul_ls_config where id_lehr=" . $this->context->getOrgId() . ") mlc on mdc.id=mlc.id_modconfig where mdc.mod='auth_unildap'"
+            (select * from modul_ls_config where id_lehr=" . $this->context->getOrgId() . ") mlc on 
+            mdc.id=mlc.id_modconfig where mdc.mod='gru'"
         );
         for ($i = 0; $i < pg_num_rows($res); $i++) {
             $r = pg_fetch_row($res, $i);

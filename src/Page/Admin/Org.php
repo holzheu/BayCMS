@@ -29,6 +29,21 @@ class Org extends \BayCMS\Page\Page
         else
             $ret .= "Kein Link oder Link ($r[link]) nicht aktiv";
 
+        $ret .= "<h4>Index</h4>";
+        $res = pg_query_params($this->context->getDbConn(), 'select non_empty(de,en) from index_files where id_lehr=$1', [$id]);
+        for ($i = 0; $i < pg_num_rows($res); $i++) {
+            $r2 = pg_fetch_array($res, $i);
+            $ret .= "$r2[non_empty]<br/>";
+        }
+        if ($delete) {
+            $res = pg_query_params($this->context->getRwDbConn(), 'delete from index_files where id_lehr=$1', [$id]);
+            if (!$res) {
+                $ret .= $this->context->TE->getMessage(pg_last_error($this->context->getRwDbConn()), 'danger');
+                return $ret;
+            }
+        }
+
+
         $ret .= "<h4>User</h4>";
         $res = pg_query_params(
             $this->context->getDbConn(),
@@ -47,13 +62,22 @@ class Org extends \BayCMS\Page\Page
             $ret .= "$r2[login] - $r2[id_lehr]";
             if ($delete && $r2['id'] != $r['id']) {
                 if ($r2['id_lehr']) {
-                    pg_execute($this->context->getRwDbConn(), 'move', [$r2['id'], $r2['id_lehr']]);
-                    pg_execute($this->context->getRwDbConn(), 'delete_access', [$r2['id'], $r['id']]);
-                    pg_execute($this->context->getRwDbConn(), 'delete_zuordnung', [$r2['id'], $r['id']]);
+                    $res2 = pg_execute($this->context->getRwDbConn(), 'move', [$r2['id'], $r2['id_lehr']]);
+                    $res2 = pg_execute($this->context->getRwDbConn(), 'delete_access', [$r2['id'], $r['id']]);
+
+                    $res2 = pg_execute($this->context->getRwDbConn(), 'delete_zuordnung', [$r2['id'], $r['id']]);
+                    if (!$res2) {
+                        $ret .= $this->context->TE->getMessage(pg_last_error($this->context->getRwDbConn()), 'danger');
+                        return $ret;
+                    }
                     $ret .= " ... <span style=\"color:#0a0;\">moved to $r2[id_lehr]</span>";
 
                 } else {
-                    pg_execute($this->context->getRwDbConn(), 'delete', [$r2['id']]);
+                    $res2 = pg_execute($this->context->getRwDbConn(), 'delete', [$r2['id']]);
+                    if (!$res2) {
+                        $ret .= $this->context->TE->getMessage(pg_last_error($this->context->getRwDbConn()), 'danger');
+                        return $ret;
+                    }
                     $ret .= " ... <span style=\"color:#f00;\">deleted</span>";
 
                 }
@@ -75,12 +99,20 @@ class Org extends \BayCMS\Page\Page
 
             if ($delete && $r2['id'] != $r['id']) {
                 if ($r2['id_lehr']) {
-                    pg_execute($this->context->getRwDbConn(), 'move', [$r2['id'], $r2['id_lehr']]);
-                    pg_execute($this->context->getRwDbConn(), 'delete_zuordnung', [$r2['id'], $r['id']]);
+                    $res2 = pg_execute($this->context->getRwDbConn(), 'move', [$r2['id'], $r2['id_lehr']]);
+                    $res2 = pg_execute($this->context->getRwDbConn(), 'delete_zuordnung', [$r2['id'], $r['id']]);
+                    if (!$res2) {
+                        $ret .= $this->context->TE->getMessage(pg_last_error($this->context->getRwDbConn()), 'danger');
+                        return $ret;
+                    }
                     $ret .= " ... <span style=\"color:#0a0;\">moved to $r2[id_lehr]</span>";
 
                 } else {
-                    pg_execute($this->context->getRwDbConn(), 'delete', [$r2['id']]);
+                    $res2 = pg_execute($this->context->getRwDbConn(), 'delete', [$r2['id']]);
+                    if (!$res2) {
+                        $ret .= $this->context->TE->getMessage(pg_last_error($this->context->getRwDbConn()), 'danger');
+                        return $ret;
+                    }
                     $ret .= " ... <span style=\"color:#f00;\">deleted</span>";
 
                 }
@@ -101,7 +133,11 @@ class Org extends \BayCMS\Page\Page
             $ret .= "<b>$r2[uname]</b>: $r2[de]/$r[en] - $r2[id_lehr]";
             if ($delete && $r2['id'] != $r['id']) {
                 if (!$r2['id_lehr']) {
-                    pg_execute($this->context->getRwDbConn(), 'delete', [$r2['id']]);
+                    $res2=pg_execute($this->context->getRwDbConn(), 'delete', [$r2['id']]);
+                    if (!$res2) {
+                        $ret .= $this->context->TE->getMessage(pg_last_error($this->context->getRwDbConn()), 'danger');
+                        return $ret;
+                    }
                     $ret .= " ... <span style=\"color:#f00;\">deleted</span>";
                 }
             }
@@ -123,7 +159,7 @@ class Org extends \BayCMS\Page\Page
                 'del'
             );
         }
-        $ret.="<hr/><br/><br/>";
+        $ret .= "<hr/><br/><br/>";
         return $ret;
 
 

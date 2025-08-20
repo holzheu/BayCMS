@@ -485,6 +485,7 @@ class Modul extends Page
             $file->load($r['id']);
             $f = $file->get();
             try {
+                pg_query_params($this->context->getRwDbConn(),'delete from index_files where id_file=$1',[$r['id']]);
                 $file->erase(true);
                 if ($echo)
                     $this->context->TE->printMessage("deleted $f[name]", inline: true);
@@ -997,12 +998,26 @@ class Modul extends Page
             return;
         if ($this->id === null)
             return;
+        $res=pg_query_params($this->context->getDbConn(),
+        'select id_mod from modul_dep where id_needs=$1',
+        [$this->id]);
+        if(pg_num_rows($res)){
+            $this->context->TE->printMessage('Es gibt noch Abhängigkeiten','danger' );
+            return;
+        }
+
         try {
+            pg_query_params(
+                $this->context->getRwDbConn(),
+                'delete from index_files where id_super in (select i.id from index_files i where id_file in (select f.id from file f, objekt o where f.id=o.id and o.id_obj=$1));',
+                [$this->id]
+            );
             pg_query_params(
                 $this->context->getRwDbConn(),
                 'delete from index_files where id_file in (select f.id from file f, objekt o where f.id=o.id and o.id_obj=$1)',
                 [$this->id]
             );
+            pg_query_params($this->context->getRwDbConn(), 'update art_objekt set view_file=null, edit_file=null where id_mod=$1', [$this->id]);
             pg_query_params($this->context->getRwDbConn(), 'delete from objekt where id_obj=$1', [$this->id]);
             if ($this->row['delete_sql'])
                 pg_query($this->context->getRwDbConn(), $this->row['delete_sql']);
@@ -1013,8 +1028,12 @@ class Modul extends Page
                     [$this->id]
                 );
             }
+            pg_query_params($this->context->getRwDbConn(), 'delete from auto_add where id_art in (select id from art_objekt where id_mod=$1)', [$this->id]);
+            pg_query_params($this->context->getRwDbConn(), 'delete from admin_objekt where id_art in (select id from art_objekt where id_mod=$1)', [$this->id]);
+            pg_query_params($this->context->getRwDbConn(), 'delete from no_create_objekt where id_art in (select id from art_objekt where id_mod=$1)', [$this->id]);
             pg_query_params($this->context->getRwDbConn(), 'delete from objekt where id in (select id from art_objekt where id_mod=$1)', [$this->id]);
             pg_query_params($this->context->getRwDbConn(), 'delete from art_objekt where id_mod=$1', [$this->id]);
+            pg_query_params($this->context->getRwDbConn(), 'delete from modul_dep where id_mod=$1', [$this->id]);
             pg_query_params($this->context->getRwDbConn(), 'delete from objekt where id=$1', [$this->id]);
 
             $this->context->TE->printMessage('Modul deleted');

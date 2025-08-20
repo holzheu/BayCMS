@@ -303,15 +303,6 @@ class BayCMSContext
 
     }
 
-    public function registerMinimum()
-    {
-        $GLOBALS['row1'] = $this->row1;
-        $GLOBALS['lang'] = $this->lang;
-        $GLOBALS['lang2'] = $this->lang2;
-        $GLOBALS['ls_link'] = $this->org_folder;
-        $GLOBALS['conn1'] = $this->conn_ro;
-        $GLOBALS['SID'] = $this->SID;
-    }
 
     public function getIndexQueries(): array
     {
